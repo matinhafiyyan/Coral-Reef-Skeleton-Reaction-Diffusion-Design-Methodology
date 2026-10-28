@@ -78,7 +78,7 @@ ENFORCE_MIN_FEATURES = True   # remove thinner struts / fill narrower channels a
 UPSAMPLE = 2            # voxel refinement before meshing (keeps the overhang rule accurate)
 TARGET_TRIANGLES = 60_000   # mesh is simplified to about this many triangles (None = keep all)
 
-# --- M3 screw hole (auto-generated at the centre of the bottom face) ---
+# --- M3 screw hole ---
 # A solid boss is grown up from the base so the thread has plastic to bite
 # into, then a helical thread is cut into it. Sizes are in real mm, so print
 # at 100 % scale (scaling the model in the slicer scales the thread too).
