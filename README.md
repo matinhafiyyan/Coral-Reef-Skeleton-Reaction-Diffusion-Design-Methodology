@@ -1,4 +1,3 @@
-# Coral-Reef-Skeleton-Reaction-Diffusion-Design-Methodology
 # Reaction-Diffusion Coral Skeleton
 
 Python scripts that grow a 3D-printable coral settlement structure from a Gray-Scott reaction-diffusion simulation, plus a base plate with threaded M3 studs to mount the printed corals on.
