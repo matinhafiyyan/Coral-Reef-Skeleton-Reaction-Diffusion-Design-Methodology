@@ -1,5 +1,5 @@
 """
-coral_reef.py — 3D Gray-Scott reaction-diffusion coral settlement structure.
+coral_reef_three.py — 3D Gray-Scott reaction-diffusion coral settlement structure.
 Dome (Platygyra-like) or cylinder, thick walls, capped overhang angle for
 support-free FDM printing, and a light mesh.
 
@@ -16,7 +16,7 @@ Pipeline
      real threaded M3 hole into it (exact mesh boolean, after simplification)
 
 Requirements:  pip install numpy scipy scikit-image trimesh matplotlib fast_simplification manifold3d
-Run:           python coral_reef.py
+Run:           python coral_reef_three.py
 Outputs:       coral_<shape>_seed<N>.stl, _params.json, _preview.png
 """
 
@@ -79,7 +79,7 @@ ENFORCE_MIN_FEATURES = True   # remove thinner struts / fill narrower channels a
 UPSAMPLE = 2            # voxel refinement before meshing (keeps the overhang rule accurate)
 TARGET_TRIANGLES = 60_000   # mesh is simplified to about this many triangles (None = keep all)
 
-# --- M3 screw hole (auto-generated at the centre of the bottom face) ---
+# --- M3 screw hole ---
 # A solid boss is grown up from the base so the thread has plastic to bite
 # into, then a helical thread is cut into it. Sizes are in real mm, so print
 # at 100 % scale (scaling the model in the slicer scales the thread too).
