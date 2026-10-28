@@ -1,12 +1,12 @@
 """
-coral_reef_three.py — 3D Gray-Scott reaction-diffusion coral settlement structure.
-Dome (Platygyra-like) or cylinder, thick walls, capped overhang angle for
-support-free FDM printing, and a light mesh.
+coral_reef.py — 3D Gray-Scott reaction-diffusion coral settlement structure.
+Cylinder with thick walls, a capped overhang angle for support-free FDM
+printing, a light mesh and an M3 threaded hole for mounting.
 
 Pipeline
   1. Simulate Gray-Scott in a 3D voxel grid  -> sponge-like labyrinth
   2. Threshold the field to a target solid fraction (porosity control)
-  3. Clip to a dome or cylinder, optionally add a solid base
+  3. Clip to a cylinder, optionally add a solid base
   4. Keep only the largest solid piece (no loose fragments)
   5. Find voids that cannot reach the outside and fill them
   5b. Remove overhangs steeper than MAX_OVERHANG_DEG so no supports are needed
@@ -16,8 +16,8 @@ Pipeline
      real threaded M3 hole into it (exact mesh boolean, after simplification)
 
 Requirements:  pip install numpy scipy scikit-image trimesh matplotlib fast_simplification manifold3d
-Run:           python coral_reef_three.py
-Outputs:       coral_<shape>_seed<N>.stl, _params.json, _preview.png
+Run:           python coral_reef.py
+Outputs:       coral_cylinder_seed<N>.stl, _params.json, _preview.png
 """
 
 import json
@@ -33,9 +33,8 @@ import trimesh
 # =====================================================================
 
 # --- Physical size (mm) ---
-SHAPE = "cylinder"      # "cylinder" (proof of concept: prints without supports) or "dome"
 DIAMETER_MM = 30.0      # footprint diameter
-HEIGHT_MM = 30.0        # TOTAL height, base included (dome: height of the crown)
+HEIGHT_MM = 30.0        # TOTAL height, base included
 BASE_MM = 3.0           # solid base plate thickness, part of HEIGHT_MM (0 = no base)
 
 # --- Simulation ---
@@ -56,10 +55,10 @@ DV = 0.08               # diffusion rate of chemical V (keep about half of DU)
 # How many simulation voxels span the cylinder diameter. The labyrinth
 # wavelength is fixed in voxels, so FEWER voxels across the diameter
 # means BIGGER channels in mm.
-VOXELS_ACROSS = 85      # finer pattern so a 30 mm part holds several layers
+VOXELS_ACROSS = 43      # keeps ~0.7 mm per simulation voxel (scale with DIAMETER_MM)
 
 # --- Porosity ---
-SOLID_FRACTION = 0.55   # fraction of the shape that is solid (0.3–0.6 sensible)
+SOLID_FRACTION = 0.55   # fraction of the cylinder that is solid (0.3–0.6 sensible)
 
 # --- Surface skin ---
 # Closes up the outer surface so the top isn't a sponge sliced open.
@@ -79,7 +78,7 @@ ENFORCE_MIN_FEATURES = True   # remove thinner struts / fill narrower channels a
 UPSAMPLE = 2            # voxel refinement before meshing (keeps the overhang rule accurate)
 TARGET_TRIANGLES = 60_000   # mesh is simplified to about this many triangles (None = keep all)
 
-# --- M3 screw hole ---
+# --- M3 screw hole (auto-generated at the centre of the bottom face) ---
 # A solid boss is grown up from the base so the thread has plastic to bite
 # into, then a helical thread is cut into it. Sizes are in real mm, so print
 # at 100 % scale (scaling the model in the slicer scales the thread too).
@@ -91,7 +90,7 @@ THREAD_PITCH_MM = 0.5       # M3 coarse pitch
 THREAD_MINOR_DIA_MM = 2.6   # M3 minor diameter + printing clearance (nominal 2.39-2.5)
 THREAD_MAJOR_DIA_MM = 3.2   # M3 major diameter + printing clearance (nominal 3.0)
 THREAD_CHAMFER_MM = 0.4     # lead-in chamfer at the hole mouth
-_name = f"coral_{SHAPE}_seed{SEED}"
+_name = f"coral_cylinder_seed{SEED}"
 OUT_STL = _name + ".stl"
 OUT_JSON = _name + "_params.json"
 OUT_PNG = _name + "_preview.png"
@@ -160,19 +159,13 @@ def build_solid(field):
     voxel_mm /= UPSAMPLE
     nx, _, nz = field.shape
 
-    # Outer shape mask ("cyl" is used below for whichever shape is chosen)
+    # Cylinder mask: a disc in every layer
     r = (np.arange(nx) + 0.5) * voxel_mm - DIAMETER_MM / 2
     xx, yy = np.meshgrid(r, r, indexing="ij")
     disc = (xx ** 2 + yy ** 2) <= (DIAMETER_MM / 2) ** 2
-    if SHAPE == "dome":
-        # half-ellipsoid: (radius / R)^2 + (z / H)^2 <= 1
-        zz = (np.arange(nz) + 0.5) * voxel_mm
-        rho2 = (xx ** 2 + yy ** 2)[:, :, None] / (DIAMETER_MM / 2) ** 2
-        cyl = rho2 + (zz[None, None, :] / HEIGHT_MM) ** 2 <= 1.0
-    else:
-        cyl = np.repeat(disc[:, :, None], nz, axis=2)
+    cyl = np.repeat(disc[:, :, None], nz, axis=2)
 
-    # Threshold to hit the target solid fraction inside the shape
+    # Threshold to hit the target solid fraction inside the cylinder
     thr = np.quantile(field[cyl], 1.0 - SOLID_FRACTION)
 
     # Surface skin: within SKIN_MM of the outer surface, raise the field so
@@ -377,6 +370,19 @@ def preview(solid, mesh, path):
     plt.close(fig)
 
 
+def software_versions():
+    """Library versions used for this run, so the result can be reproduced."""
+    import platform
+    from importlib.metadata import version, PackageNotFoundError
+    out = {"python": platform.python_version()}
+    for pkg in ("numpy", "scipy", "scikit-image", "trimesh", "fast_simplification", "manifold3d"):
+        try:
+            out[pkg] = version(pkg)
+        except PackageNotFoundError:
+            out[pkg] = None
+    return out
+
+
 # =====================================================================
 def main():
     print(f"1. Simulating Gray-Scott on a {GRID}^3 grid (F={F}, K={K}, seed={SEED})")
@@ -401,15 +407,19 @@ def main():
     solid_frac = float(solid[cyl].mean())
     report = {
         "parameters": {
-            "diameter_mm": DIAMETER_MM, "height_mm": HEIGHT_MM, "base_mm": BASE_MM,
+            "shape": "cylinder", "diameter_mm": DIAMETER_MM, "height_mm": HEIGHT_MM, "base_mm": BASE_MM,
             "grid": GRID, "steps": STEPS, "seed": SEED, "F": F, "K": K, "DU": DU, "DV": DV,
             "voxels_across": VOXELS_ACROSS, "target_solid_fraction": SOLID_FRACTION, "skin_mm": SKIN_MM, "skin_strength": SKIN_STRENGTH,
             "upsample": UPSAMPLE, "min_strut_mm": MIN_STRUT_MM, "min_channel_mm": MIN_CHANNEL_MM,
+            "max_overhang_deg": MAX_OVERHANG_DEG, "enforce_min_features": ENFORCE_MIN_FEATURES,
+            "target_triangles": TARGET_TRIANGLES,
             "screw_hole": ({"thread": f"M3x{THREAD_PITCH_MM:g}", "depth_mm": SCREW_DEPTH_MM,
                             "minor_dia_mm": THREAD_MINOR_DIA_MM, "major_dia_mm": THREAD_MAJOR_DIA_MM,
-                            "boss_od_mm": SCREW_BOSS_OD_MM, "boss_height_mm": SCREW_BOSS_HEIGHT_MM}
+                            "boss_od_mm": SCREW_BOSS_OD_MM, "boss_height_mm": SCREW_BOSS_HEIGHT_MM,
+                            "chamfer_mm": THREAD_CHAMFER_MM}
                            if ADD_SCREW_HOLE else None),
         },
+        "software": software_versions(),
         "results": {
             "actual_solid_fraction": round(solid_frac, 3),
             "porosity": round(1 - solid_frac, 3),
