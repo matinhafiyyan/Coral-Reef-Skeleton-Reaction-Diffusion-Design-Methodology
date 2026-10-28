@@ -126,4 +126,5 @@ The thread settings in both scripts must match, or the models will not screw on.
 | Free, open-source libraries with pinned versions | Anyone can run the scripts without paid software |
 | Version history in this repository | Every change to the method is recorded and can be traced back to the models it produced |
 
-To rebuild any published model, see "Reproducing a result" in the [README](../README.md).
+To rebuild any published model, see "Reproducing a result" in the [README](/OWNER/REPOSITORY/blob/main/README.md)
+.
