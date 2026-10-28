@@ -64,7 +64,7 @@ A design is fully defined by its `_params.json`. To rebuild one exactly:
 
 ## How it works
 
-See [docs/code_walkthrough.md](docs/code_walkthrough.md) for a plain-language explanation of every part of both scripts and how it maps to the methodology.
+See [code_walkthrough.md](/code_walkthrough.md) for a plain-language explanation of every part of both scripts and how it maps to the methodology.
 
 In short, `coral_reef.py`:
 
