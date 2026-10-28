@@ -6,7 +6,7 @@ The lattice is inspired by the meandering valleys of *Platygyra* (brain coral). 
 
 | Script                | Makes                                                                                  |
 | --------------------- | -------------------------------------------------------------------------------------- |
-| `coral_reef.py`       | The coral skeleton: a porous cylinder (or dome) with an M3 threaded hole in the bottom |
+| `coral_reef.py`       | The coral skeleton: a porous cylinder with an M3 threaded hole in the bottom           |
 | `base_plate_studs.py` | A flat plate with threaded M3 studs; each coral screws onto one stud                   |
 
 ## Quick start
@@ -39,7 +39,6 @@ All settings are at the top of each script, in the block marked `SETTINGS - chan
 | Setting (`coral_reef.py`)        | What it does                                                                    |
 | -------------------------------- | ------------------------------------------------------------------------------- |
 | `SEED`                           | Picks a different random starting point: a new pattern with the same statistics |
-| `SHAPE`                          | `"cylinder"` (prints without supports) or `"dome"`                              |
 | `DIAMETER_MM`, `HEIGHT_MM`       | Outer size. `HEIGHT_MM` already includes the base                               |
 | `VOXELS_ACROSS`                  | Pattern scale. Smaller number = bigger channels                                 |
 | `SOLID_FRACTION`                 | How much of the part is solid. Lower = more porous                              |
@@ -71,7 +70,7 @@ In short, `coral_reef.py`:
 
 1. Simulates two virtual chemicals reacting and spreading in a 3D grid (Gray-Scott model).
 2. Turns high-concentration regions into solid and the rest into open channels.
-3. Cuts the result to a cylinder or dome and adds a solid base.
+3. Cuts the result to a cylinder and adds a solid base.
 4. Fixes anything unprintable: walls too thin, channels too narrow, overhangs, loose bits, sealed pockets.
 5. Measures wall and channel sizes.
 6. Converts the voxels to a smooth mesh, cuts an M3 thread into the bottom and saves an STL.
