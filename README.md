@@ -6,7 +6,7 @@ Python scripts that grow a 3D-printable coral settlement structure from a Gray-S
 
 The lattice is inspired by the meandering valleys of *Platygyra* (brain coral). It is designed for binder-jet printing in calcium carbonate, and can be prototyped in PLA on an FDM printer without supports.
 
-   ![Cross-sections and 3D view of the seed-42 coral](examples/coral_cylinder_seed42_preview.png)
+![Cross-sections and 3D view of the seed-42 coral](examples/coral_cylinder_seed42_preview.png)
 
 ## What is in this repository
 
