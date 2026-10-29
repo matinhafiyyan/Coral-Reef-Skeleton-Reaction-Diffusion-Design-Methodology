@@ -126,6 +126,13 @@ Found a problem or have a question? Open an issue on this repository and include
 
 Parts of the code and documentation in this repository were written with help from an AI assistant (Claude, by Anthropic).
 
+## Authors
+
+- Matin Hafiyyan, Temasek Polytechnic
+- Angus Tan, Temasek Polytechnic
+- Henry Ng, Temasek Polytechnic
+- Dr Zhang Guangyu, Research Scientist, Digital Fabrication and Additive Manufacturing Centre, Temasek Polytechnic
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
