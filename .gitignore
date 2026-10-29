@@ -1,7 +1,17 @@
-.github/
-    workflows/
-        tests.yml
-.gitignore          <- here, at the top level
-CHANGELOG.md
-README.md
-...
+# Files the scripts generate when you run them in the repository folder.
+# Reference outputs live in examples/ and are kept.
+/*.stl
+/*.3mf
+/*_params.json
+/*_preview.png
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
