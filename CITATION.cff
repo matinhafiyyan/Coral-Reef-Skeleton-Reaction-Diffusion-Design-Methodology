@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Reaction-Diffusion Coral Skeleton"
+type: software
+authors:
+  - given-names: Matin
+    family-names: Hafiyyan
+    affiliation: "Temasek Polytechnic"
+  - given-names: Angus
+    family-names: Tan
+    affiliation: "Temasek Polytechnic"
+  - given-names: Henry
+    family-names: Ng
+    affiliation: "Temasek Polytechnic"
+  - given-names: Guangyu
+    family-names: Zhang
+    affiliation: "Digital Fabrication and Additive Manufacturing Centre, Temasek Polytechnic"
+repository-code: "https://github.com/matinhafiyyan/Coral-Reef-Skeleton-Reaction-Diffusion-Design-Methodology"
+license: MIT
+keywords:
+  - reaction-diffusion
+  - Gray-Scott
+  - coral restoration
+  - 3D printing
+  - binder jetting
