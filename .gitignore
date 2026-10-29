@@ -1,0 +1,7 @@
+.github/
+    workflows/
+        tests.yml
+.gitignore          <- here, at the top level
+CHANGELOG.md
+README.md
+...
