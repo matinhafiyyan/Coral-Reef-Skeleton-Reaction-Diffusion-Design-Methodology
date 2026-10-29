@@ -1,6 +1,6 @@
 """
 base_plate_studs.py — Flat base plate with threaded M3 studs, made to carry
-the coral models from coral_reef_two.py (each model screws onto one stud).
+the coral models from coral_reef.py (each model screws onto one stud).
 
 Pipeline
   1. Work out the stud grid: evenly spaced, with the models' footprint and the
@@ -43,7 +43,7 @@ EDGE_MARGIN_MM = 10.0       # minimum free plate between a model and the plate e
 MIN_GAP_MM = 10.0           # minimum free space between neighbouring models (warning only)
 
 # --- M3 thread ---
-# Keep these two in step with the hole settings in coral_reef_two.py
+# Keep these in step with the hole settings in coral_reef.py
 # (THREAD_MINOR_DIA_MM / THREAD_MAJOR_DIA_MM / THREAD_PITCH_MM).
 HOLE_MINOR_DIA_MM = 2.6     # minor diameter of the threaded hole in the model
 HOLE_MAJOR_DIA_MM = 3.2     # major diameter of the threaded hole in the model

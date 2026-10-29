@@ -1,0 +1,77 @@
+{
+  "parameters": {
+    "shape": "cylinder",
+    "diameter_mm": 30.0,
+    "height_mm": 30.0,
+    "base_mm": 3.0,
+    "grid": 96,
+    "steps": 6000,
+    "seed": 42,
+    "F": 0.03,
+    "K": 0.058,
+    "DU": 0.16,
+    "DV": 0.08,
+    "voxels_across": 43,
+    "target_solid_fraction": 0.55,
+    "skin_mm": 3.0,
+    "skin_strength": 0.5,
+    "upsample": 2,
+    "min_strut_mm": 3.0,
+    "min_channel_mm": 3.5,
+    "max_overhang_deg": 45,
+    "enforce_min_features": true,
+    "target_triangles": 60000,
+    "screw_hole": {
+      "thread": "M3x0.5",
+      "depth_mm": 7.0,
+      "minor_dia_mm": 2.6,
+      "major_dia_mm": 3.2,
+      "boss_od_mm": 9.0,
+      "boss_height_mm": 8.0,
+      "chamfer_mm": 0.4
+    }
+  },
+  "software": {
+    "python": "3.13.17",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "scikit-image": "0.26.0",
+    "trimesh": "5.1.1",
+    "fast_simplification": "0.2.0",
+    "manifold3d": "3.5.4"
+  },
+  "results": {
+    "actual_solid_fraction": 0.597,
+    "porosity": 0.403,
+    "loose_voxels_removed": 0,
+    "trapped_voids_filled": 0,
+    "trapped_void_volume_mm3": 0.0,
+    "strut_thickness_mm": {
+      "p10": 4.19,
+      "median": 5.58,
+      "p90": 6.98
+    },
+    "channel_width_mm": {
+      "p10": 2.79,
+      "median": 4.19,
+      "p90": 6.28
+    },
+    "percent_struts_below_min": 2.6,
+    "percent_channels_below_min": 29.8,
+    "mesh_watertight": true,
+    "mesh_volume_mm3": 12578.9,
+    "mesh_surface_area_mm2": 6629.6,
+    "surface_area_to_volume_per_mm": 0.527,
+    "triangles": 114904,
+    "channel_width_distribution": {
+      "0-1 mm": 3.7,
+      "1-2 mm": 2.4,
+      "2-3 mm": 6.0,
+      "3-4 mm": 17.7,
+      "4-5 mm": 34.7,
+      "5-6 mm": 18.4,
+      "6-7 mm": 13.9,
+      "7-8 mm": 3.2
+    }
+  }
+}
