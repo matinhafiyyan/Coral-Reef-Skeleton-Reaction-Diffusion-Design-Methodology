@@ -1,0 +1,91 @@
+{
+  "parameters": {
+    "shape": "cylinder",
+    "diameter_mm": 30.0,
+    "height_mm": 30.0,
+    "base_mm": 3.0,
+    "grid": 96,
+    "steps": 6000,
+    "seed": 23,
+    "F": 0.03,
+    "K": 0.058,
+    "DU": 0.16,
+    "DV": 0.08,
+    "voxels_across": 43,
+    "target_solid_fraction": 0.45,
+    "skin_mm": 3.5,
+    "skin_strength": 0.7,
+    "upsample": 2,
+    "min_strut_mm": 2.0,
+    "min_channel_mm": 2.5,
+    "max_overhang_deg": 45,
+    "enforce_min_features": true,
+    "target_triangles": 60000,
+    "joint": {
+      "type": "bayonet",
+      "stud_dia_mm": 5.0,
+      "stud_height_mm": 8.0,
+      "lug_span_mm": 8.0,
+      "lug_width_mm": 3.0,
+      "lug_height_mm": 2.5,
+      "lug_top_below_tip_mm": 0.5,
+      "clearance_mm": 0.3,
+      "twist_deg": 90.0,
+      "lock_play_mm": 0.05,
+      "boss_od_mm": 14.6,
+      "boss_height_mm": 10.5,
+      "chamfer_mm": 0.6,
+      "derived": {
+        "socket_depth_mm": 8.5,
+        "bore_dia_mm": 5.6,
+        "slot_width_mm": 3.6,
+        "slot_outer_dia_mm": 8.6,
+        "locking_shelf_height_mm": 4.95,
+        "play_at_entry_mm": 0.3,
+        "play_when_locked_mm": 0.05
+      }
+    }
+  },
+  "software": {
+    "python": "3.13.17",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "scikit-image": "0.26.0",
+    "trimesh": "5.1.1",
+    "fast_simplification": "0.2.0",
+    "manifold3d": "3.5.4"
+  },
+  "results": {
+    "actual_solid_fraction": 0.55,
+    "porosity": 0.45,
+    "loose_voxels_removed": 0,
+    "trapped_voids_filled": 0,
+    "trapped_void_volume_mm3": 0.0,
+    "strut_thickness_mm": {
+      "p10": 3.49,
+      "median": 4.19,
+      "p90": 10.47
+    },
+    "channel_width_mm": {
+      "p10": 2.79,
+      "median": 4.88,
+      "p90": 6.28
+    },
+    "percent_struts_below_min": 0.3,
+    "percent_channels_below_min": 7.6,
+    "mesh_watertight": true,
+    "mesh_volume_mm3": 11222.3,
+    "mesh_surface_area_mm2": 7224.7,
+    "surface_area_to_volume_per_mm": 0.644,
+    "triangles": 61302,
+    "channel_width_distribution": {
+      "0-1 mm": 2.1,
+      "1-2 mm": 2.3,
+      "2-3 mm": 5.9,
+      "3-4 mm": 7.3,
+      "4-5 mm": 50.7,
+      "5-6 mm": 17.0,
+      "6-7 mm": 14.7
+    }
+  }
+}
