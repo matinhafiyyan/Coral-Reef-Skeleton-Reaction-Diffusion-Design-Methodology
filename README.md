@@ -21,6 +21,7 @@ Version 2 replaces the screw thread with a quarter-turn bayonet joint. Push the 
 | `tools/joint_fit.py`   | Checks that a coral and a plate fit, turn and lock, before you print them         |
 | `tools/joint_views.py` | Draws the joint (socket, stud, half-section) and exports a 3D assembly            |
 | `code_walkthrough.md`  | Plain-language explanation of how the scripts work and why                        |
+| `sizing_guide.md`      | Which settings to change, and to what, for a different coral diameter             |
 | `examples/`            | Reference outputs to check that your run reproduces the published result          |
 | `tests/`               | Automated checks that every model is printable, reproducible and fits             |
 | `CHANGELOG.md`         | How the design developed, version by version                                      |
@@ -81,16 +82,20 @@ For the reference example, `tools/joint_fit.py` measures the vertical play as 0.
 
 All settings are at the top of each script, in the block marked `SETTINGS - change these`. Most people only need these:
 
-| Setting (`coral_reef.py`)        | What it does                                                                                |
-| -------------------------------- | ------------------------------------------------------------------------------------------- |
-| `SEED`                           | Picks a different random starting point: a new pattern with the same statistics             |
-| `DIAMETER_MM`, `HEIGHT_MM`       | Outer size. `HEIGHT_MM` already includes the base                                           |
-| `VOXELS_ACROSS`                  | Pattern scale. Change it in proportion to `DIAMETER_MM` to keep channel sizes the same      |
-| `SOLID_FRACTION`                 | How much of the part is solid. Lower = more porous                                          |
-| `SKIN_STRENGTH`                  | 0 = open lattice on the surface; higher = more closed, brain-coral-like surface             |
-| `MIN_STRUT_MM`, `MIN_CHANNEL_MM` | Thinnest wall and narrowest channel allowed. Set from your printer's limits                 |
-| `MAX_OVERHANG_DEG`               | 45 for support-free FDM printing; `None` for binder jetting, where powder supports the part |
-| `ADD_JOINT`                      | `False` gives a coral with a plain flat base and no socket                                  |
+| Setting (`coral_reef.py`)        | What it does                                                                                 |
+| -------------------------------- | -------------------------------------------------------------------------------------------- |
+| `SEED`                           | Picks a different random starting point: a new pattern with the same statistics              |
+| `DIAMETER_MM`, `HEIGHT_MM`       | Outer size. `HEIGHT_MM` already includes the base                                            |
+| `VOXELS_ACROSS`                  | Pattern scale. Change it in proportion to `DIAMETER_MM` to keep channel sizes the same       |
+| `SOLID_FRACTION`                 | How much of the part is solid. Lower = more porous                                           |
+| `SKIN_STRENGTH`                  | 0 = open lattice on the surface; higher = more closed, brain-coral-like surface              |
+| `TOP_SKIN_STRENGTH`              | The same for the top face. Without it the top is a flat cut through the lattice              |
+| `CREST_MM`, `CREST_TAPER`        | Height of the rounded ridges on top, and how much they narrow. `CREST_MM = 0` turns them off |
+| `MIN_STRUT_MM`, `MIN_CHANNEL_MM` | Thinnest wall and narrowest channel allowed. Set from your printer's limits                  |
+| `MAX_OVERHANG_DEG`               | 45 for support-free FDM printing; `None` for binder jetting, where powder supports the part  |
+| `ADD_JOINT`                      | `False` gives a coral with a plain flat base and no socket                                   |
+
+**Changing the diameter?** `VOXELS_ACROSS`, `GRID`, `TARGET_TRIANGLES` and the plate size must change with it, or the pattern is stretched. [sizing_guide.md](sizing_guide.md) gives the values for 30 to 60 mm.
 
 | Setting (`base_plate_studs.py`) | What it does                                                              |
 | ------------------------------- | ------------------------------------------------------------------------- |
@@ -147,9 +152,10 @@ In short, `coral_reef.py`:
 1. Simulates two virtual chemicals reacting and spreading in a 3D grid (Gray-Scott model).
 2. Turns high-concentration regions into solid and the rest into open channels.
 3. Cuts the result to a cylinder and adds a solid base and a solid boss for the joint.
-4. Fixes anything unprintable: walls too thin, channels too narrow, overhangs, loose bits, sealed pockets.
-5. Measures wall and channel sizes.
-6. Converts the voxels to a smooth mesh, cuts the bayonet socket into the bottom and saves an STL.
+4. Closes the outer surface with a skin and raises rounded, meandering ridges on the top, like a brain coral.
+5. Fixes anything unprintable: walls too thin, channels too narrow, overhangs, loose bits, sealed pockets.
+6. Measures wall and channel sizes.
+7. Converts the voxels to a smooth mesh, cuts the bayonet socket into the bottom and saves an STL.
 
 ## Limitations
 

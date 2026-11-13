@@ -49,11 +49,28 @@ def test_record_contains_every_setting(small_run):
     params = record["parameters"]
     for key in ("diameter_mm", "height_mm", "base_mm", "seed", "F", "K", "DU", "DV",
                 "voxels_across", "target_solid_fraction", "skin_mm", "skin_strength",
+                "top_skin_mm", "top_skin_strength", "crest_mm", "crest_taper",
                 "min_strut_mm", "min_channel_mm", "max_overhang_deg", "target_triangles"):
         assert key in params, f"{key} missing from the JSON record"
     assert record["software"]["numpy"], "library versions must be recorded"
     assert record["results"]["mesh_watertight"] is True
     assert record["results"]["trapped_voids_filled"] >= 0
+
+
+def test_top_skin_closes_the_top(monkeypatch):
+    """With the top skin on, the layers just under the crest band are more solid."""
+    field = cr.simulate(32, 400, cr.F, cr.K, cr.DU, cr.DV, seed=cr.SEED)
+
+    def solid_under_crest():
+        solid, cyl, voxel_mm = cr.build_solid(field)[:3]
+        z1 = solid.shape[2] - int(round(cr.CREST_MM / voxel_mm))
+        z0 = z1 - max(1, int(round(1.0 / voxel_mm)))           # 1 mm under the band
+        return solid[:, :, z0:z1][cyl[:, :, z0:z1]].mean()
+
+    with_skin = solid_under_crest()
+    monkeypatch.setattr(cr, "TOP_SKIN_STRENGTH", 0.0)
+    without_skin = solid_under_crest()
+    assert with_skin > without_skin + 0.1
 
 
 def test_same_seed_gives_the_same_pattern():

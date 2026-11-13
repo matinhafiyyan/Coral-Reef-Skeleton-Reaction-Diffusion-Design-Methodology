@@ -6,7 +6,9 @@ printing, a light mesh and a quarter-turn BAYONET socket for mounting.
 Pipeline
   1. Simulate Gray-Scott in a 3D voxel grid  -> sponge-like labyrinth
   2. Threshold the field to a target solid fraction (porosity control)
-  3. Clip to a cylinder, optionally add a solid base
+  3. Clip to a cylinder, optionally add a solid base; a side skin and a top
+     skin close the outer surface; a crest band raises rounded, meandering
+     ridges on the top, like the ridges and valleys of Platygyra
   4. Keep only the largest solid piece (no loose fragments)
   5. Find voids that cannot reach the outside and fill them
   5b. Remove overhangs steeper than MAX_OVERHANG_DEG so no supports are needed
@@ -72,6 +74,25 @@ SOLID_FRACTION = 0.45   # fraction of the cylinder that is solid (0.3–0.6 sens
 # larvae from getting in. Lower SKIN_STRENGTH if the surface looks too closed.
 SKIN_MM = 3.5
 SKIN_STRENGTH = 0.7
+
+# --- Top skin ---
+# The same effect, measured down from the top face. Without it the top is a flat
+# cut through the lattice, which leaves loose-looking posts where the cut slices
+# through walls. With it the top closes into a surface of meandering grooves.
+# TOP_SKIN_MM = how deep it reaches from the top; TOP_SKIN_STRENGTH = 0 (off) to 1.
+# 4.0 / 0.85 joins the posts into continuous ridges; 2.5 / 0.7 is a light touch.
+TOP_SKIN_MM = 4.0
+TOP_SKIN_STRENGTH = 0.85
+
+# --- Crest band (brain-coral ridges on top) ---
+# The top CREST_MM of the model is rebuilt from the 2D pattern just below it,
+# so the top skin becomes a floor and rounded, meandering ridges rise from it,
+# with valleys between them (like Platygyra's ridges and valleys) instead of a
+# flat cap with holes in it. The top skin then starts below this band.
+# CREST_TAPER = how much the ridges narrow towards their tops (0 = straight
+# sides; 0.5 = rounded crests; higher = thinner, sharper ridges). 0 mm = off.
+CREST_MM = 3.0
+CREST_TAPER = 0.5
 
 # --- Printability (mm) ---
 MIN_STRUT_MM = 2.0      # thinnest wall: ~5 perimeters with a 0.4 mm nozzle
@@ -193,15 +214,36 @@ def build_solid(field):
     # Threshold to hit the target solid fraction inside the cylinder
     thr = np.quantile(field[cyl], 1.0 - SOLID_FRACTION)
 
-    # Surface skin: within SKIN_MM of the outer surface, raise the field so
-    # walls thicken and channel mouths narrow. The outside then reads as a
-    # mostly closed surface with winding grooves and openings (like a brain
-    # coral) instead of a sponge sliced open. The bottom face is excluded.
+    # Surface skin: near the outer surface, raise the field so walls thicken and
+    # channel mouths narrow. The outside then reads as a mostly closed surface
+    # with winding grooves and openings (like a brain coral) instead of a sponge
+    # sliced open. The side skin reaches SKIN_MM in from the curved wall and the
+    # top skin TOP_SKIN_MM down from the top face; where both apply, the stronger
+    # wins. The bottom face is excluded (it carries the base and the joint).
+    boost = np.zeros(field.shape, dtype=np.float32)
     if SKIN_MM > 0 and SKIN_STRENGTH > 0:
         below = np.concatenate([np.ones_like(cyl[:, :, :1]), cyl], axis=2)
         depth = ndimage.distance_transform_edt(below)[:, :, 1:] * voxel_mm
-        w = np.clip(1.0 - depth / SKIN_MM, 0.0, 1.0)
-        field = field + SKIN_STRENGTH * (field.max() - thr) * w
+        boost = SKIN_STRENGTH * np.clip(1.0 - depth / SKIN_MM, 0.0, 1.0)
+    if TOP_SKIN_MM > 0 and TOP_SKIN_STRENGTH > 0:
+        top_depth = (nz - 0.5 - np.arange(nz)) * voxel_mm - CREST_MM   # mm below the crest band
+        top = TOP_SKIN_STRENGTH * np.clip(1.0 - top_depth / TOP_SKIN_MM, 0.0, 1.0)
+        boost = np.maximum(boost, top[None, None, :])
+
+    # Crest band: in the top CREST_MM, replace the 3D field with the (lightly
+    # smoothed) 2D pattern of the layer just below, so the ridges run straight up
+    # and stay joined to the floor. The level is lowered with height, so each
+    # ridge narrows to a rounded crest and the valleys open out towards the top.
+    crest_vox = min(int(round(CREST_MM / voxel_mm)), nz - 1)
+    if crest_vox > 0:
+        z0 = nz - crest_vox
+        pattern = ndimage.gaussian_filter(field[:, :, z0 - 1], 1.0)
+        s = (np.arange(crest_vox) + 0.5) / crest_vox                  # 0 at floor, 1 at top
+        drop = CREST_TAPER * (0.5 - s) * (field.max() - thr)
+        field[:, :, z0:] = pattern[:, :, None] + drop[None, None, :]
+        boost[:, :, z0:] = 0.0                                         # no skin inside the band
+
+    field = field + boost * (field.max() - thr)
 
     solid = (field > thr) & cyl
 
@@ -504,6 +546,8 @@ def main():
             "shape": "cylinder", "diameter_mm": DIAMETER_MM, "height_mm": HEIGHT_MM, "base_mm": BASE_MM,
             "grid": GRID, "steps": STEPS, "seed": SEED, "F": F, "K": K, "DU": DU, "DV": DV,
             "voxels_across": VOXELS_ACROSS, "target_solid_fraction": SOLID_FRACTION, "skin_mm": SKIN_MM, "skin_strength": SKIN_STRENGTH,
+            "top_skin_mm": TOP_SKIN_MM, "top_skin_strength": TOP_SKIN_STRENGTH,
+            "crest_mm": CREST_MM, "crest_taper": CREST_TAPER,
             "upsample": UPSAMPLE, "min_strut_mm": MIN_STRUT_MM, "min_channel_mm": MIN_CHANNEL_MM,
             "max_overhang_deg": MAX_OVERHANG_DEG, "enforce_min_features": ENFORCE_MIN_FEATURES,
             "target_triangles": TARGET_TRIANGLES,

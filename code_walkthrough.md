@@ -37,17 +37,18 @@ The chemistry being simulated is the **Gray-Scott reaction-diffusion model**, a 
 
 All settings are in one block at the top of the file, so you can change the design without reading the rest of the code. The main groups are:
 
-| Group             | What it controls                                                                                                                                    |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Size              | Diameter and total height in millimetres. The height includes the solid base                                                                        |
-| Simulation        | Size of the virtual box (`GRID`), how long the simulation runs (`STEPS`), and the random starting arrangement (`SEED`)                              |
-| Gray-Scott recipe | `F` and `K`: how fast one chemical is added and the other removed. `DU` and `DV`: how fast each one spreads. These decide the type of pattern       |
-| Pattern scale     | `VOXELS_ACROSS`: how much of the pattern fits across the part. Fewer means bigger channels                                                          |
-| Porosity          | `SOLID_FRACTION`: how much of the cylinder is solid                                                                                                 |
-| Surface skin      | How much the outside is closed up, so it looks like a coral surface rather than a sliced sponge                                                     |
-| Printability      | Thinnest wall, narrowest channel and steepest overhang allowed                                                                                      |
-| Mesh              | How smooth and how large the final file is                                                                                                          |
-| Joint             | Size of the bayonet socket in the bottom, used to lock the model onto a base plate stud. The shared joint settings must match `base_plate_studs.py` |
+| Group             | What it controls                                                                                                                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Size              | Diameter and total height in millimetres. The height includes the solid base                                                                                                           |
+| Simulation        | Size of the virtual box (`GRID`), how long the simulation runs (`STEPS`), and the random starting arrangement (`SEED`)                                                                 |
+| Gray-Scott recipe | `F` and `K`: how fast one chemical is added and the other removed. `DU` and `DV`: how fast each one spreads. These decide the type of pattern                                          |
+| Pattern scale     | `VOXELS_ACROSS`: how much of the pattern fits across the part. Fewer means bigger channels. Change it together with the diameter; see [sizing_guide.md](sizing_guide.md)               |
+| Porosity          | `SOLID_FRACTION`: how much of the cylinder is solid                                                                                                                                    |
+| Surface skin      | How much the outside is closed up, so it looks like a coral surface rather than a sliced sponge. A side skin works in from the curved wall and a top skin works down from the top face |
+| Crest band        | Rounded, meandering ridges on the top, like the ridges and valleys of a brain coral                                                                                                    |
+| Printability      | Thinnest wall, narrowest channel and steepest overhang allowed                                                                                                                         |
+| Mesh              | How smooth and how large the final file is                                                                                                                                             |
+| Joint             | Size of the bayonet socket in the bottom, used to lock the model onto a base plate stud. The shared joint settings must match `base_plate_studs.py`                                    |
 
 ### Step 1: simulate the pattern (`simulate` and `laplacian`)
 
@@ -68,7 +69,9 @@ This step turns the chemical pattern into a printable object.
 1. **Scale.** Stretch the pattern to the real size of the part and refine it for a smoother surface.
 2. **Cut to a cylinder.** Mark which cubes are inside the cylinder.
 3. **Choose solid and air.** Pick a concentration cut-off so that exactly `SOLID_FRACTION` of the cylinder becomes solid. Everything above it is solid; everything below is an open channel.
-4. **Surface skin.** Near the outside, nudge the pattern towards solid so channel openings narrow into grooves.
+4. **Surface skin and crest band.** Near the outside, nudge the pattern towards solid so channel openings narrow into grooves. The side skin reaches `SKIN_MM` in from the curved wall and the top skin `TOP_SKIN_MM` down from the top. Without the top skin, the top would be a flat cut through the lattice, leaving loose-looking posts wherever the cut slices through a wall.
+
+   On top of that closed surface, the **crest band** (the top `CREST_MM`) is rebuilt from the flat pattern of the layer just below it, so the walls run straight up from the closed surface instead of ending in a flat cap. The cut-off is raised gradually towards the top, so each wall narrows into a rounded ridge and the valleys between ridges widen as they open out. The result looks like the ridges and valleys of *Platygyra* rather than a slab with holes in it. `CREST_TAPER` sets how much the ridges narrow; `CREST_MM = 0` turns the band off.
 5. **Add a base and joint boss.** Add a solid floor and a solid post in the centre (14.6 mm across and 10.5 mm tall by default), so the bayonet socket has solid material all round it.
 6. **Enforce minimum sizes.** Fill channels too narrow to clean out and remove walls too thin to print. This works by rolling an imaginary ball of the minimum size through the part (`open_mm`): anything the ball cannot fit into is changed.
 7. **Remove overhangs (optional).** Rebuild the part layer by layer from the bottom and remove any solid with nothing close enough underneath to hold it up. This lets PLA prototypes print without support material. Binder-jet printing does not need it, because loose powder holds up every layer; set `MAX_OVERHANG_DEG = None` to turn it off.

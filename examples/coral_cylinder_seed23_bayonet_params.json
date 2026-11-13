@@ -15,6 +15,10 @@
     "target_solid_fraction": 0.45,
     "skin_mm": 3.5,
     "skin_strength": 0.7,
+    "top_skin_mm": 4.0,
+    "top_skin_strength": 0.85,
+    "crest_mm": 3.0,
+    "crest_taper": 0.5,
     "upsample": 2,
     "min_strut_mm": 2.0,
     "min_channel_mm": 2.5,
@@ -56,8 +60,8 @@
     "manifold3d": "3.5.4"
   },
   "results": {
-    "actual_solid_fraction": 0.55,
-    "porosity": 0.45,
+    "actual_solid_fraction": 0.563,
+    "porosity": 0.437,
     "loose_voxels_removed": 0,
     "trapped_voids_filled": 0,
     "trapped_void_volume_mm3": 0.0,
@@ -71,21 +75,21 @@
       "median": 4.88,
       "p90": 6.28
     },
-    "percent_struts_below_min": 0.3,
-    "percent_channels_below_min": 7.6,
+    "percent_struts_below_min": 0.2,
+    "percent_channels_below_min": 7.9,
     "mesh_watertight": true,
-    "mesh_volume_mm3": 11222.3,
-    "mesh_surface_area_mm2": 7224.7,
-    "surface_area_to_volume_per_mm": 0.644,
+    "mesh_volume_mm3": 11502.8,
+    "mesh_surface_area_mm2": 7128.9,
+    "surface_area_to_volume_per_mm": 0.62,
     "triangles": 61302,
     "channel_width_distribution": {
-      "0-1 mm": 2.1,
+      "0-1 mm": 2.0,
       "1-2 mm": 2.3,
-      "2-3 mm": 5.9,
-      "3-4 mm": 7.3,
-      "4-5 mm": 50.7,
-      "5-6 mm": 17.0,
-      "6-7 mm": 14.7
+      "2-3 mm": 7.3,
+      "3-4 mm": 12.6,
+      "4-5 mm": 48.8,
+      "5-6 mm": 15.2,
+      "6-7 mm": 11.8
     }
   }
 }

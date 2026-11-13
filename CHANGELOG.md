@@ -2,7 +2,15 @@
 
 How the design evolved, newest first. Each version lists what changed and why.
 
-## v2.0.0: bayonet joint (November 2026)
+## v2.1.0: brain-coral top surface (unreleased)
+
+- Added a top skin (`TOP_SKIN_MM` 4.0, `TOP_SKIN_STRENGTH` 0.85). The surface skin was meant to close every face except the bottom, but it only measured depth from the curved wall, so the top was a flat cut through the lattice that left loose-looking posts. The top skin closes it.
+- Added a crest band (`CREST_MM` 3.0, `CREST_TAPER` 0.5). The top few millimetres are rebuilt from the flat pattern of the layer below, so rounded, meandering ridges with valleys between them rise from the closed surface, like the ridges and valleys of *Platygyra*, instead of a flat slab with holes in it.
+- Both are recorded in the JSON. A new test checks that the top skin closes the top.
+- Added `sizing_guide.md`: which settings to change, and to what, for corals from 30 to 60 mm across.
+- Reference coral in `examples/` regenerated with the new top.
+
+: bayonet joint (November 2026)
 
 The mounting joint was redesigned twice after v1.0.0. A printed M5 thread (developed in place of the M3 thread, but never released) was replaced by a quarter-turn bayonet, because a joint for binder-jet calcium carbonate parts cannot rely on screws, nuts or adhesive: metal or nylon hardware would not survive sintering, and glue would add a second material to the structure.
 
