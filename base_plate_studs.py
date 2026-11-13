@@ -1,13 +1,14 @@
 """
-base_plate_studs.py — Flat base plate with threaded M3 studs, made to carry
-the coral models from coral_reef.py (each model screws onto one stud).
+base_plate_studs.py — Flat base plate with BAYONET studs, made to carry the
+coral models from coral_reef.py. Each coral slides down over one stud and is
+locked with a quarter turn (clockwise, seen from above).
 
 Pipeline
   1. Work out the stud grid: evenly spaced, with the models' footprint and the
      edge margin taken into account
-  2. Check the layout (edge margin, gap between neighbouring models, thread sizes)
-  3. Build the plate and one helical M3 stud (circle offset from the axis,
-     extruded with a twist = smooth right-handed thread, chamfered tip)
+  2. Check the layout (edge margin, gap between neighbouring models, lug size)
+  3. Build the plate and one bayonet stud (round shaft, two lugs near the tip,
+     chamfered tip, filleted base and lug roots)
   4. Fuse the studs into the plate with exact mesh booleans (one solid piece)
   5. Export STL (+ optional 3MF) and a JSON record of every parameter
   6. Render a preview (top-down layout + 3D)
@@ -15,7 +16,7 @@ Pipeline
 Requirements:  pip install numpy trimesh matplotlib manifold3d
                (optional: lxml for 3MF export)
 Run:           python base_plate_studs.py
-Outputs:       baseplate_<X>x<Y>x<T>_<N>studs.stl, _params.json, _preview.png
+Outputs:       baseplate_<X>x<Y>x<T>_<N>studs_bayonet.stl, _params.json, _preview.png
 """
 
 import json
@@ -38,30 +39,30 @@ PLATE_THICKNESS_MM = 3.0    # plate thickness (printed flat on the bed)
 # of free plate beyond its edge. Spacing between studs follows from that.
 STUD_COLUMNS = 2            # studs along X
 STUD_ROWS = 2               # studs along Y
-MODEL_FOOTPRINT_MM = 30.0   # widest footprint of one model once screwed on (square box)
+MODEL_FOOTPRINT_MM = 30.0   # widest footprint of one model once locked on (square box)
 EDGE_MARGIN_MM = 10.0       # minimum free plate between a model and the plate edge
 MIN_GAP_MM = 10.0           # minimum free space between neighbouring models (warning only)
 
-# --- M3 thread ---
-# Keep these in step with the hole settings in coral_reef.py
-# (THREAD_MINOR_DIA_MM / THREAD_MAJOR_DIA_MM / THREAD_PITCH_MM).
-HOLE_MINOR_DIA_MM = 2.6     # minor diameter of the threaded hole in the model
-HOLE_MAJOR_DIA_MM = 3.2     # major diameter of the threaded hole in the model
-THREAD_PITCH_MM = 0.5       # M3 coarse pitch
-FIT_CLEARANCE_MM = 0.1      # radial gap between stud and hole (stud = hole - this)
-
-# --- Stud shape ---
-STUD_HEIGHT_MM = 6.0        # height of the threaded part above the plate.
-                            # Keep it about 1 mm under the model's SCREW_DEPTH_MM (7)
-                            # so the model can sit flat on the plate
-STUD_TIP_CHAMFER_MM = 0.45  # lead-in chamfer at the top of each stud
-STUD_EMBED_MM = 1.5         # how far the thread runs down into the plate (fuses it)
+# --- Bayonet stud ---
+# These MUST match the bayonet settings in coral_reef.py (the tests check this).
+JOINT_TYPE = "bayonet"
+STUD_DIA_MM = 5.0           # round shaft of the stud
+STUD_HEIGHT_MM = 8.0        # stud height above the plate
+LUG_SPAN_MM = 8.0           # tip-to-tip width across both lugs (each lug sticks out 1.5 mm)
+LUG_WIDTH_MM = 3.0          # lug width
+LUG_HEIGHT_MM = 2.5         # lug height
+LUG_TOP_BELOW_TIP_MM = 0.5  # gap from the top of the lugs to the stud tip
+JOINT_CLEARANCE_MM = 0.3    # gap on every side between stud and socket (set in coral_reef.py)
+STUD_TIP_CHAMFER_MM = 0.6   # lead-in chamfer at the top of each stud
+STUD_BASE_FILLET_MM = 0.5   # 45-degree fillet where the stud meets the plate (strength in bending).
+                            # Must stay inside the coral's 0.6 mm socket mouth chamfer.
+LUG_ROOT_FILLET_MM = 0.5    # 45-degree fillet on top of each lug where it meets the shaft.
+                            # Under the lug it is limited to fit inside the socket's bore.
+STUD_EMBED_MM = 2.0         # how far the stud runs down into the plate (fuses it)
 
 # --- Meshing / output ---
-THREAD_SEGMENTS = 64        # points around the thread outline
-THREAD_STEPS_PER_TURN = 32  # slices per thread turn (higher = smoother, heavier)
 EXPORT_3MF = True           # also write a 3MF (needs lxml); the STL is always written
-_name = f"baseplate_{PLATE_X_MM:g}x{PLATE_Y_MM:g}x{PLATE_THICKNESS_MM:g}_{STUD_COLUMNS * STUD_ROWS}studs"
+_name = f"baseplate_{PLATE_X_MM:g}x{PLATE_Y_MM:g}x{PLATE_THICKNESS_MM:g}_{STUD_COLUMNS * STUD_ROWS}studs_bayonet"
 OUT_STL = _name + ".stl"
 OUT_3MF = _name + ".3mf"
 OUT_JSON = _name + "_params.json"
@@ -99,41 +100,56 @@ def layout():
           f"edge margin {margin:.1f} mm, gap between models {gap:.1f} mm")
     if gap < MIN_GAP_MM:
         print(f"  WARNING: models are only {gap:.1f} mm apart (wanted {MIN_GAP_MM:g} mm)")
-    if STUD_HEIGHT_MM > 6.5:
-        print("  WARNING: tall studs may bottom out in the model's 7 mm hole")
+    if LUG_SPAN_MM >= MODEL_FOOTPRINT_MM:
+        print("  WARNING: the lugs are wider than the model footprint")
     return centres, (px, py), margin, gap
 
 
 # =====================================================================
 # 3-4. Plate + studs
 # =====================================================================
+def clean_mesh(mesh):
+    """Drop zero-area sliver triangles the boolean can leave behind and merge
+    duplicate points, so the mesh stays watertight after it is saved as STL."""
+    m = trimesh.Trimesh(mesh.vertices.copy(), mesh.faces.copy(), process=True)
+    m.update_faces(m.nondegenerate_faces())
+    m.remove_unreferenced_vertices()
+    m.merge_vertices()
+    m.fix_normals()
+    return m if m.is_watertight else mesh   # never trade a closed mesh for an open one
+
+
 def build_mesh(centres):
     try:
         import manifold3d as mf
     except ImportError:
         raise ImportError("This script needs manifold3d:  pip install manifold3d")
 
-    r_minor = HOLE_MINOR_DIA_MM / 2 - FIT_CLEARANCE_MM
-    r_major = HOLE_MAJOR_DIA_MM / 2 - FIT_CLEARANCE_MM
-    a, e = (r_minor + r_major) / 2, (r_major - r_minor) / 2
-
-    # One stud: a circle offset from the axis, extruded with a twist. Its radius
-    # swings between r_minor and r_major once per pitch (right-handed thread).
-    z0 = PLATE_THICKNESS_MM - STUD_EMBED_MM
-    height = STUD_HEIGHT_MM + STUD_EMBED_MM
-    turns = height / THREAD_PITCH_MM
-    t = np.linspace(0, 2 * np.pi, THREAD_SEGMENTS, endpoint=False)
-    outline = np.column_stack([e + a * np.cos(t), a * np.sin(t)])
-    stud = mf.Manifold.extrude(mf.CrossSection([outline]), height,
-                               int(turns * THREAD_STEPS_PER_TURN), 360.0 * turns,
-                               (1.0, 1.0)).translate([0, 0, z0])
-
-    # Chamfered tip: trim the thread with a cylinder whose top edge is bevelled
-    top = PLATE_THICKNESS_MM + STUD_HEIGHT_MM
+    # One stud: a round shaft from inside the plate to the tip, with a bevelled
+    # tip, plus two lugs (one bar through the shaft) just below the tip.
+    r = STUD_DIA_MM / 2
     c = STUD_TIP_CHAMFER_MM
-    envelope = (mf.Manifold.cylinder(top - c - z0, r_major + 0.5, r_major + 0.5, 96, False).translate([0, 0, z0]) +
-                mf.Manifold.cylinder(c, r_major, r_major - c, 96, False).translate([0, 0, top - c]))
-    stud = stud ^ envelope
+    z0 = PLATE_THICKNESS_MM - STUD_EMBED_MM
+    top = PLATE_THICKNESS_MM + STUD_HEIGHT_MM
+    shaft = (mf.Manifold.cylinder(top - c - z0, r, r, 96, False).translate([0, 0, z0]) +
+             mf.Manifold.cylinder(c, r, r - c, 96, False).translate([0, 0, top - c]))
+    lug_top = top - LUG_TOP_BELOW_TIP_MM
+    lugs = mf.Manifold.cube([LUG_SPAN_MM, LUG_WIDTH_MM, LUG_HEIGHT_MM], False) \
+        .translate([-LUG_SPAN_MM / 2, -LUG_WIDTH_MM / 2, lug_top - LUG_HEIGHT_MM])
+    # Fillets (45-degree, as cones) to take the sharp inside corners out:
+    #  - stud base, where bending from water drag concentrates;
+    #  - lug roots, top and underside, where the lugs carry the pull-out load.
+    #    Under the lug the fillet must fit inside the coral's bore, so it is
+    #    limited to just under the clearance.
+    f = STUD_BASE_FILLET_MM
+    base_fillet = mf.Manifold.cylinder(f, r + f, r, 96, False).translate([0, 0, PLATE_THICKNESS_MM])
+    slab = mf.Manifold.cube([LUG_SPAN_MM, LUG_WIDTH_MM, 30], False).translate([-LUG_SPAN_MM / 2, -LUG_WIDTH_MM / 2, 0])
+    g_top = LUG_ROOT_FILLET_MM
+    g_low = min(LUG_ROOT_FILLET_MM, JOINT_CLEARANCE_MM - 0.05)
+    top_fillet = mf.Manifold.cylinder(g_top, r + g_top, r, 96, False).translate([0, 0, lug_top])
+    low_fillet = mf.Manifold.cylinder(g_low, r, r + g_low, 96, False) \
+        .translate([0, 0, lug_top - LUG_HEIGHT_MM - g_low])
+    stud = shaft + lugs + base_fillet + ((top_fillet + low_fillet) ^ slab)
 
     plate = mf.Manifold.cube([PLATE_X_MM, PLATE_Y_MM, PLATE_THICKNESS_MM], False) \
         .translate([-PLATE_X_MM / 2, -PLATE_Y_MM / 2, 0])
@@ -143,7 +159,7 @@ def build_mesh(centres):
     out = plate.to_mesh()
     mesh = trimesh.Trimesh(np.array(out.vert_properties)[:, :3].astype(float),
                            np.array(out.tri_verts), process=False)
-    return mesh, (2 * r_minor, 2 * r_major)
+    return clean_mesh(mesh), (STUD_DIA_MM, LUG_SPAN_MM)
 
 
 # =====================================================================
@@ -163,7 +179,8 @@ def preview(mesh, centres, path):
     for x, y in centres:
         s = MODEL_FOOTPRINT_MM
         ax.add_patch(Rectangle((x - s / 2, y - s / 2), s, s, fc="none", ec="tab:blue", ls="--", lw=1))
-        ax.add_patch(Circle((x, y), HOLE_MAJOR_DIA_MM / 2 - FIT_CLEARANCE_MM, fc="k"))
+        ax.add_patch(Circle((x, y), STUD_DIA_MM / 2, fc="k"))
+        ax.add_patch(Rectangle((x - LUG_SPAN_MM / 2, y - LUG_WIDTH_MM / 2), LUG_SPAN_MM, LUG_WIDTH_MM, fc="k"))
     ax.set_xlim(-PLATE_X_MM / 2 - 5, PLATE_X_MM / 2 + 5)
     ax.set_ylim(-PLATE_Y_MM / 2 - 5, PLATE_Y_MM / 2 + 5)
     ax.set_aspect("equal")
@@ -195,8 +212,8 @@ def main():
     print("1-2. Stud layout")
     centres, (px, py), margin, gap = layout()
 
-    print("3-4. Building plate and threaded studs")
-    mesh, (stud_minor, stud_major) = build_mesh(centres)
+    print("3-4. Building plate and bayonet studs")
+    mesh, (stud_dia, lug_span) = build_mesh(centres)
     bodies = len(mesh.split(only_watertight=False))
     print(f"  watertight: {mesh.is_watertight}   solid pieces: {bodies}   triangles: {len(mesh.faces)}")
 
@@ -213,15 +230,15 @@ def main():
             "plate_mm": [PLATE_X_MM, PLATE_Y_MM, PLATE_THICKNESS_MM],
             "stud_columns": STUD_COLUMNS, "stud_rows": STUD_ROWS,
             "model_footprint_mm": MODEL_FOOTPRINT_MM, "edge_margin_mm": EDGE_MARGIN_MM,
-            "hole_minor_dia_mm": HOLE_MINOR_DIA_MM, "hole_major_dia_mm": HOLE_MAJOR_DIA_MM,
-            "thread_pitch_mm": THREAD_PITCH_MM, "fit_clearance_mm": FIT_CLEARANCE_MM,
-            "stud_height_mm": STUD_HEIGHT_MM, "stud_tip_chamfer_mm": STUD_TIP_CHAMFER_MM,
-            "stud_embed_mm": STUD_EMBED_MM,
+            "joint": {"type": JOINT_TYPE, "stud_dia_mm": STUD_DIA_MM, "stud_height_mm": STUD_HEIGHT_MM,
+                      "lug_span_mm": LUG_SPAN_MM, "lug_width_mm": LUG_WIDTH_MM, "lug_height_mm": LUG_HEIGHT_MM,
+                      "lug_top_below_tip_mm": LUG_TOP_BELOW_TIP_MM, "clearance_mm": JOINT_CLEARANCE_MM,
+                      "stud_tip_chamfer_mm": STUD_TIP_CHAMFER_MM, "stud_embed_mm": STUD_EMBED_MM,
+                      "stud_base_fillet_mm": STUD_BASE_FILLET_MM, "lug_root_fillet_mm": LUG_ROOT_FILLET_MM},
         },
         "results": {
             "stud_centres_mm": [[round(float(x), 3), round(float(y), 3)] for x, y in centres],
             "stud_pitch_mm": [round(float(px), 3), round(float(py), 3)],
-            "stud_minor_dia_mm": round(stud_minor, 2), "stud_major_dia_mm": round(stud_major, 2),
             "edge_margin_mm": round(float(margin), 2),
             "gap_between_models_mm": None if gap == float("inf") else round(float(gap), 2),
             "mesh_watertight": bool(mesh.is_watertight),
@@ -239,8 +256,8 @@ def main():
 
     r = report["results"]
     print("\n=== Summary ===")
-    print(f"Plate {PLATE_X_MM:g} x {PLATE_Y_MM:g} x {PLATE_THICKNESS_MM:g} mm, {len(centres)} M3 studs "
-          f"({r['stud_minor_dia_mm']}-{r['stud_major_dia_mm']} mm dia, {STUD_HEIGHT_MM:g} mm tall)")
+    print(f"Plate {PLATE_X_MM:g} x {PLATE_Y_MM:g} x {PLATE_THICKNESS_MM:g} mm, {len(centres)} bayonet studs "
+          f"({STUD_DIA_MM:g} mm shaft, {LUG_SPAN_MM:g} mm across lugs, {STUD_HEIGHT_MM:g} mm tall)")
     print(f"Stud pitch {r['stud_pitch_mm']} mm   Edge margin {r['edge_margin_mm']} mm   "
           f"Model gap {r['gap_between_models_mm']} mm")
     print(f"Watertight: {r['mesh_watertight']}   Solid pieces: {r['solid_pieces']}")
