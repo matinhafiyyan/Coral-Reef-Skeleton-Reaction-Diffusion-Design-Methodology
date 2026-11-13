@@ -11,7 +11,6 @@ import base_plate_studs as bp
 def plate_run(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(bp, "EXPORT_3MF", False)
-    monkeypatch.setattr(bp, "THREAD_STEPS_PER_TURN", 12)   # coarser thread, faster test
     bp.main()
     return tmp_path
 
@@ -27,17 +26,28 @@ def test_plate_has_one_stud_per_position(plate_run):
     assert len(record["results"]["stud_centres_mm"]) == bp.STUD_COLUMNS * bp.STUD_ROWS
 
 
-def test_stud_is_smaller_than_the_hole():
-    major = bp.HOLE_MAJOR_DIA_MM - 2 * bp.FIT_CLEARANCE_MM
-    minor = bp.HOLE_MINOR_DIA_MM - 2 * bp.FIT_CLEARANCE_MM
-    assert major < bp.HOLE_MAJOR_DIA_MM and minor < bp.HOLE_MINOR_DIA_MM
+JOINT_KEYS = ("JOINT_TYPE", "STUD_DIA_MM", "STUD_HEIGHT_MM", "LUG_SPAN_MM", "LUG_WIDTH_MM",
+              "LUG_HEIGHT_MM", "LUG_TOP_BELOW_TIP_MM", "JOINT_CLEARANCE_MM")
 
 
-def test_scripts_share_the_same_thread():
+def test_scripts_share_the_same_joint():
     import coral_reef as cr
-    assert bp.THREAD_PITCH_MM == cr.THREAD_PITCH_MM
-    assert bp.HOLE_MINOR_DIA_MM == cr.THREAD_MINOR_DIA_MM
-    assert bp.HOLE_MAJOR_DIA_MM == cr.THREAD_MAJOR_DIA_MM
+    for key in JOINT_KEYS:
+        assert getattr(bp, key) == getattr(cr, key), f"{key} differs between the scripts"
+
+
+def test_socket_leaves_a_locking_shelf():
+    import coral_reef as cr
+    shelf = cr.STUD_HEIGHT_MM - cr.LUG_TOP_BELOW_TIP_MM - cr.LUG_HEIGHT_MM - cr.JOINT_CLEARANCE_MM
+    assert shelf >= 2.0, "the shelf that holds the lugs down must be at least 2 mm thick"
+    assert cr.SOCKET_DEPTH_MM > cr.STUD_HEIGHT_MM, "the stud must not bottom out in the socket"
+    assert 0 < cr.LOCK_PLAY_MM < cr.JOINT_CLEARANCE_MM, "the ramp must reduce the play, not remove it"
+
+
+def test_base_fillet_fits_the_socket_mouth():
+    import coral_reef as cr
+    assert bp.STUD_BASE_FILLET_MM < cr.JOINT_CHAMFER_MM + cr.JOINT_CLEARANCE_MM, \
+        "the stud's base fillet would stop the coral sitting flat on the plate"
 
 
 def test_plate_fits_the_coral_footprint():

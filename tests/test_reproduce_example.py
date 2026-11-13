@@ -1,7 +1,7 @@
 """Full reproduction of the published example (slow, about 2-5 minutes).
 
 Runs coral_reef.py with its default settings and compares the result with
-examples/coral_cylinder_seed42_params.json. Skipped unless RUN_SLOW=1:
+the matching file in examples/ (for the script's current SEED). Skipped unless RUN_SLOW=1:
 
     RUN_SLOW=1 pytest tests/test_reproduce_example.py
 """
@@ -13,7 +13,7 @@ import pytest
 
 import coral_reef as cr
 
-EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "coral_cylinder_seed42_params.json"
+EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / cr.OUT_JSON
 
 
 @pytest.mark.skipif(os.environ.get("RUN_SLOW") != "1", reason="slow; set RUN_SLOW=1 to run")
