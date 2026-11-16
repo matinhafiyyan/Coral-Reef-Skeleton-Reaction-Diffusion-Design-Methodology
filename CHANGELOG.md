@@ -2,15 +2,16 @@
 
 How the design evolved, newest first. Each version lists what changed and why.
 
-## v2.1.0: brain-coral top surface (unreleased)
+## v2.1.0: a more natural lattice (unreleased)
 
-- Added a top skin (`TOP_SKIN_MM` 4.0, `TOP_SKIN_STRENGTH` 0.85). The surface skin was meant to close every face except the bottom, but it only measured depth from the curved wall, so the top was a flat cut through the lattice that left loose-looking posts. The top skin closes it.
-- Added a crest band (`CREST_MM` 3.0, `CREST_TAPER` 0.5). The top few millimetres are rebuilt from the flat pattern of the layer below, so rounded, meandering ridges with valleys between them rise from the closed surface, like the ridges and valleys of *Platygyra*, instead of a flat slab with holes in it.
-- Both are recorded in the JSON. A new test checks that the top skin closes the top.
+- The overhang rule is now off by default (`MAX_OVERHANG_DEG = None`), since binder jetting needs no supports. The rule works bottom-up, so trimming one unsupported wall also removes everything resting on it. On a 50 mm, seed 7 coral it removed 487,146 voxels, raising porosity from 47% to 60% and cutting caves into the sides, with rows of 45-degree slanted walls. The JSON now records `overhang_trimmed_percent`, and the script warns when the rule removes more than 10% of the solid.
+- Finer pattern by default, matching the early lattice that looked most natural: `VOXELS_ACROSS` 43 to 70 (0.70 to 0.43 mm per simulation voxel), minimum wall and channel 1.5 mm and 2.0 mm, and `TARGET_TRIANGLES` 60,000 to 250,000 so the smoother shapes are kept. Reference example: 47% porosity, median wall 2.6 mm, median channel 3.0 mm.
+- The side skin is now off by default (`SKIN_STRENGTH = 0`).
+- Added an optional top skin (`TOP_SKIN_MM`, `TOP_SKIN_STRENGTH`) and crest band (`CREST_MM`, `CREST_TAPER`), both off by default. The original skin only measured depth from the curved wall, so it never reached the top face; the top skin covers it, and the crest band raises rounded ridges from it. Both are recorded in the JSON, and a new test checks that the top skin closes the top.
 - Added `sizing_guide.md`: which settings to change, and to what, for corals from 30 to 60 mm across.
-- Reference coral in `examples/` regenerated with the new top.
+- Reference coral in `examples/` regenerated. Its STL is now about 12.5 MB because of the finer mesh.
 
-: bayonet joint (November 2026)
+## v2.0.0: bayonet joint (November 2026)
 
 The mounting joint was redesigned twice after v1.0.0. A printed M5 thread (developed in place of the M3 thread, but never released) was replaced by a quarter-turn bayonet, because a joint for binder-jet calcium carbonate parts cannot rely on screws, nuts or adhesive: metal or nylon hardware would not survive sintering, and glue would add a second material to the structure.
 

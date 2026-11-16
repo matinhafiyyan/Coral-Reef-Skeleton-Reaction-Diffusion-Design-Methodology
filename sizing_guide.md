@@ -14,31 +14,33 @@ If you change `DIAMETER_MM` and leave `VOXELS_ACROSS` alone, the whole pattern i
 
 Two pattern scales are worth using:
 
-| Pattern  | Scale  | Typical valley width | Look                                                                                  |
-| -------- | ------ | -------------------- | ------------------------------------------------------------------------------------- |
-| Standard | 0.7 mm | about 5 mm           | The v2.0.0 reference example                                                          |
-| Fine     | 0.5 mm | about 4 mm           | Closer to *Platygyra daedalea*, whose valleys are 4 to 5 mm wide (Salimi et al. 2018) |
+| Pattern | Scale   | Typical channel width | Look                                                                                  |
+| ------- | ------- | --------------------- | ------------------------------------------------------------------------------------- |
+| Default | 0.43 mm | about 3 mm            | Fine, open and natural-looking; the script's default                                  |
+| Coarser | 0.5 mm  | about 3.5 to 4 mm     | Closer to *Platygyra daedalea*, whose valleys are 4 to 5 mm wide (Salimi et al. 2018) |
+
+(Version 2.0.0 used 0.7 mm. It looked blocky, especially at larger diameters.)
 
 ## Settings that change with the diameter
 
 ### `coral_reef.py`
 
-| Diameter | Pattern  | `VOXELS_ACROSS` | `GRID`       | `TARGET_TRIANGLES` | STL size (approx.) |
-| -------- | -------- | --------------- | ------------ | ------------------ | ------------------ |
-| 30 mm    | Standard | 43 (tested)     | 96           | 60_000 (tested)    | 3 MB               |
-| 30 mm    | Fine     | 60              | 96           | 120_000            | 6 MB               |
-| 40 mm    | Standard | 57              | 96           | 110_000            | 5 MB               |
-| 40 mm    | Fine     | 80              | 96           | 210_000            | 10 MB              |
-| 50 mm    | Standard | 72 (tested)     | 96           | 170_000            | 8 MB               |
-| 50 mm    | Fine     | 100 (tested)    | 128 (tested) | 330_000            | 16 MB              |
-| 60 mm    | Standard | 86              | 96           | 240_000            | 12 MB              |
-| 60 mm    | Fine     | 120             | 128          | 470_000            | 23 MB              |
+| Diameter | Pattern | `VOXELS_ACROSS` | `GRID`       | `TARGET_TRIANGLES` | STL size (approx.) |
+| -------- | ------- | --------------- | ------------ | ------------------ | ------------------ |
+| 30 mm    | Default | 70 (tested)     | 96 (tested)  | 250_000 (tested)   | 12 MB              |
+| 30 mm    | Coarser | 60              | 96           | 185_000            | 9 MB               |
+| 40 mm    | Default | 93              | 96           | 450_000            | 22 MB              |
+| 40 mm    | Coarser | 80              | 96           | 330_000            | 16 MB              |
+| 50 mm    | Default | 116             | 128          | 700_000            | 35 MB              |
+| 50 mm    | Coarser | 100 (tested)    | 128 (tested) | 515_000            | 26 MB              |
+| 60 mm    | Default | 140             | 160          | 1_000_000          | 50 MB              |
+| 60 mm    | Coarser | 120             | 128          | 740_000            | 37 MB              |
 
 "(tested)" marks values that have been run. The others follow from these rules:
 
-- **`VOXELS_ACROSS`** = diameter / pattern scale (0.7 or 0.5 mm).
-- **`GRID`** must be at least `VOXELS_ACROSS`. If it is smaller, the simulated pattern is repeated side by side and the same pattern appears twice. Going from 96 to 128 makes the simulation about 2.4 times slower.
-- **`TARGET_TRIANGLES`** grows with the square of the diameter, and again as the pattern gets finer, because smaller features need more triangles to keep rounded ridge tops instead of flat facets. Halve the number for a smaller file with less detail.
+- **`VOXELS_ACROSS`** = diameter / pattern scale (0.43 or 0.5 mm).
+- **`GRID`** must be at least `VOXELS_ACROSS`. If it is smaller, the simulated pattern is repeated side by side and the same pattern appears twice. Simulation time grows with the cube of `GRID`: 128 takes about 2.4 times as long as 96, and 160 about 4.6 times.
+- **`TARGET_TRIANGLES`** grows with the square of the diameter, and again as the pattern gets finer, because smaller features need more triangles to keep rounded shapes instead of flat facets. Halve the number for a smaller file with less detail. GitHub warns about files over 50 MB, so keep very large STLs out of the repository.
 
 ### `base_plate_studs.py` (2 x 2 plate)
 
@@ -53,26 +55,30 @@ Plate size = 2 x edge margin (`EDGE_MARGIN_MM`, 10) + 2 x diameter + one gap bet
 
 ## Settings that follow the pattern scale, not the diameter
 
-These are all in millimetres and should match the size of the valleys:
+These are in millimetres and should match the size of the channels:
 
-| Setting          | Standard (0.7 mm) | Fine (0.5 mm) |
-| ---------------- | ----------------- | ------------- |
-| `MIN_STRUT_MM`   | 2.0               | 1.2           |
-| `MIN_CHANNEL_MM` | 2.5               | 1.5           |
-| `SKIN_MM`        | 3.5               | 2.5           |
-| `TOP_SKIN_MM`    | 4.0               | 4.0           |
-| `CREST_MM`       | 3.0               | 3.0           |
+| Setting          | Default (0.43 mm) | Coarser (0.5 mm) |
+| ---------------- | ----------------- | ---------------- |
+| `MIN_STRUT_MM`   | 1.5 (tested)      | 1.2 (tested)     |
+| `MIN_CHANNEL_MM` | 2.0 (tested)      | 1.5 (tested)     |
 
-The 1.2 mm wall and 1.5 mm channel limits in the fine column are about as small as the method should go. Check them against what your printer can hold and, for binder jetting, what can still be cleared of loose powder.
+Only if you turn the optional skins on: `SKIN_MM` about 2.5, `TOP_SKIN_MM` about 4.0 and `CREST_MM` about 3.0 suit both scales.
+
+Check the minimum wall and channel sizes against what your printer can hold and, for binder jetting, what can still be cleared of loose powder.
+
+## Keep the overhang rule off
+
+Leave `MAX_OVERHANG_DEG = None` (the default) for binder jetting. The rule works from the bottom up, so removing one unsupported wall also removes everything resting on it. The finer the pattern, the more it removes: on a 50 mm coral it cut caves into the sides and left rows of 45-degree slanted walls. If you do turn it on for a PLA test print, check `overhang_trimmed_percent` in the JSON; the script warns above 10%.
 
 ## Settings that do not change
 
 - `HEIGHT_MM` (30, base included) and `BASE_MM`.
 - `STEPS`, `F`, `K`, `DU` and `DV`. These decide the type of pattern, not its size: changing them can turn the labyrinth into spots or blobs.
 - `SOLID_FRACTION`, `SKIN_STRENGTH`, `TOP_SKIN_STRENGTH` and `CREST_TAPER`.
+- `MAX_OVERHANG_DEG` (keep `None`).
 - All joint settings. The 14.6 mm boss around the socket fits every diameter from 30 mm up.
 
-## Example: a 50 mm coral with the fine pattern
+## Example: a 50 mm coral with the coarser pattern
 
 In `coral_reef.py`:
 
@@ -80,10 +86,9 @@ In `coral_reef.py`:
 DIAMETER_MM = 50.0
 GRID = 128
 VOXELS_ACROSS = 100
-SKIN_MM = 2.5
 MIN_STRUT_MM = 1.2
 MIN_CHANNEL_MM = 1.5
-TARGET_TRIANGLES = 330_000
+TARGET_TRIANGLES = 515_000
 ```
 
 In `base_plate_studs.py`:

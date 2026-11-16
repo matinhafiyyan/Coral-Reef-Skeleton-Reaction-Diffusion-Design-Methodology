@@ -1,17 +1,17 @@
 """
 coral_reef.py — 3D Gray-Scott reaction-diffusion coral settlement structure.
-Cylinder with thick walls, a capped overhang angle for support-free FDM
-printing, a light mesh and a quarter-turn BAYONET socket for mounting.
+Porous cylinder for binder-jet printing (optional overhang limit for
+support-free FDM), a light mesh and a quarter-turn BAYONET socket for mounting.
 
 Pipeline
   1. Simulate Gray-Scott in a 3D voxel grid  -> sponge-like labyrinth
   2. Threshold the field to a target solid fraction (porosity control)
   3. Clip to a cylinder, optionally add a solid base; a side skin and a top
-     skin close the outer surface; a crest band raises rounded, meandering
-     ridges on the top, like the ridges and valleys of Platygyra
+     skin (optional) close the outer surface; an optional crest band raises
+     rounded ridges on the top
   4. Keep only the largest solid piece (no loose fragments)
   5. Find voids that cannot reach the outside and fill them
-  5b. Remove overhangs steeper than MAX_OVERHANG_DEG so no supports are needed
+  5b. Optional: remove overhangs steeper than MAX_OVERHANG_DEG (FDM only)
   6. Measure strut thickness and channel width (mm)
   7. Mesh with marching cubes and export STL + a JSON record of every parameter
   8. Add a solid boss under the centre of the base (voxel step) and cut a
@@ -59,30 +59,30 @@ DV = 0.08               # diffusion rate of chemical V (keep about half of DU)
 # How many simulation voxels span the cylinder diameter. The labyrinth
 # wavelength is fixed in voxels, so FEWER voxels across the diameter
 # means BIGGER channels in mm.
-VOXELS_ACROSS = 43      # keeps ~0.7 mm per simulation voxel (scale with DIAMETER_MM)
+VOXELS_ACROSS = 70      # 0.43 mm per simulation voxel (scale with DIAMETER_MM; see sizing_guide.md)
 
 # --- Porosity ---
 SOLID_FRACTION = 0.45   # fraction of the cylinder that is solid (0.3–0.6 sensible)
 
-# --- Surface skin ---
-# Closes up the outer surface so the top isn't a sponge sliced open.
+# --- Surface skin (optional) ---
+# Thickens walls near the curved side so channel mouths narrow into grooves.
 # SKIN_MM = how deep the effect reaches; SKIN_STRENGTH = 0 (off) to 1 (nearly
-# sealed). Too strong seals the channels and the trapped-void step fills them.
-# Raised (was 3.0 / 0.5) so channel mouths narrow before the surface and larvae
-# are not washed out: open area at the surface drops from ~38 % to ~23 %.
-# Higher still (4.5 / 0.8 -> ~3 % open) nearly seals the model, which also keeps
-# larvae from getting in. Lower SKIN_STRENGTH if the surface looks too closed.
+# sealed). Off by default: the open lattice looks more natural. 3.5 / 0.7
+# narrows the openings (open area at the surface ~38 % -> ~23 %), which may
+# keep larvae from being washed out; 4.5 / 0.8 nearly seals the model. Too
+# strong seals channels, and the trapped-void step then fills them.
 SKIN_MM = 3.5
-SKIN_STRENGTH = 0.7
+SKIN_STRENGTH = 0.0
 
-# --- Top skin ---
-# The same effect, measured down from the top face. Without it the top is a flat
-# cut through the lattice, which leaves loose-looking posts where the cut slices
-# through walls. With it the top closes into a surface of meandering grooves.
+# --- Top skin (optional) ---
+# The same effect, measured down from the top face, closing the top into a
+# surface of meandering grooves.
 # TOP_SKIN_MM = how deep it reaches from the top; TOP_SKIN_STRENGTH = 0 (off) to 1.
-# 4.0 / 0.85 joins the posts into continuous ridges; 2.5 / 0.7 is a light touch.
+# Optional, off by default (TOP_SKIN_STRENGTH = 0). Loose-looking posts on the
+# top were mostly made by the overhang rule; with it off, the open top looks
+# natural. Try 4.0 / 0.85 for a closed top, 2.5 / 0.7 for a light touch.
 TOP_SKIN_MM = 4.0
-TOP_SKIN_STRENGTH = 0.85
+TOP_SKIN_STRENGTH = 0.0
 
 # --- Crest band (brain-coral ridges on top) ---
 # The top CREST_MM of the model is rebuilt from the 2D pattern just below it,
@@ -91,19 +91,26 @@ TOP_SKIN_STRENGTH = 0.85
 # flat cap with holes in it. The top skin then starts below this band.
 # CREST_TAPER = how much the ridges narrow towards their tops (0 = straight
 # sides; 0.5 = rounded crests; higher = thinner, sharper ridges). 0 mm = off.
-CREST_MM = 3.0
+# Optional, off by default; it is meant to be used together with the top skin.
+CREST_MM = 0.0
 CREST_TAPER = 0.5
 
 # --- Printability (mm) ---
-MIN_STRUT_MM = 2.0      # thinnest wall: ~5 perimeters with a 0.4 mm nozzle
-MIN_CHANNEL_MM = 2.5    # narrowest channel (room for settlement; avoids stringing)
-MAX_OVERHANG_DEG = 45   # steepest allowed overhang, measured from vertical.
-                        # 45 prints support-free on most FDM printers. Set to None to disable.
+MIN_STRUT_MM = 1.5      # thinnest wall: ~4 perimeters with a 0.4 mm nozzle
+MIN_CHANNEL_MM = 2.0    # narrowest channel (room for settlement; avoids stringing)
+MAX_OVERHANG_DEG = None # steepest allowed overhang, measured from vertical. None = off.
+                        # Off by default: binder jetting needs no supports (loose powder
+                        # holds every layer up). 45 makes support-free FDM prints, but the
+                        # rule works bottom-up, so trimming one unsupported wall also
+                        # removes everything that rested on it. With fine patterns this
+                        # cuts large caves and leaves rows of 45-degree slanted walls
+                        # (check overhang_trimmed_percent in the JSON). For PLA test
+                        # prints, slicer tree supports keep the true shape.
 ENFORCE_MIN_FEATURES = True   # remove thinner struts / fill narrower channels automatically
 
 # --- Meshing ---
 UPSAMPLE = 2            # voxel refinement before meshing (keeps the overhang rule accurate)
-TARGET_TRIANGLES = 60_000   # mesh is simplified to about this many triangles (None = keep all)
+TARGET_TRIANGLES = 250_000   # mesh is simplified to about this many triangles (None = keep all)
 
 # --- Bayonet joint (quarter-turn lock) ---
 # The base plate carries a round stud with two lugs near its tip. The coral has
@@ -275,6 +282,7 @@ def build_solid(field):
     # Self-supporting rule: every solid voxel must sit on solid in the layer
     # below, within a horizontal reach of tan(angle) x layer height. Built
     # bottom-up, so anything that would need a support is trimmed away.
+    trimmed_pct = 0.0
     if MAX_OVERHANG_DEG is not None:
         reach = np.tan(np.radians(MAX_OVERHANG_DEG))   # in voxels per layer
         before = solid.sum()
@@ -285,7 +293,12 @@ def build_solid(field):
             else:
                 ok = np.zeros_like(below)
             solid[:, :, z] &= ok
-        print(f"  overhang limit {MAX_OVERHANG_DEG} deg: trimmed {int(before - solid.sum())} voxels")
+        trimmed = int(before - solid.sum())
+        trimmed_pct = 100.0 * trimmed / max(int(before), 1)
+        print(f"  overhang limit {MAX_OVERHANG_DEG} deg: trimmed {trimmed} voxels ({trimmed_pct:.1f}% of the solid)")
+        if trimmed_pct > 10:
+            print("  WARNING: the overhang rule removed over 10% of the solid; expect caves and "
+                  "slanted walls. Set MAX_OVERHANG_DEG = None for binder jetting.")
 
     # Keep the largest face-connected solid piece
     lab, n = ndimage.label(solid)
@@ -305,7 +318,7 @@ def build_solid(field):
     solid = solid | trapped[1:-1, 1:-1, 1:-1]   # fill them so no powder is locked in
     print(f"  trapped voids: {n_trapped}  ({trapped_vol:.1f} mm^3) -> filled")
 
-    return solid, cyl, voxel_mm, thr, n_trapped, trapped_vol, removed
+    return solid, cyl, voxel_mm, thr, n_trapped, trapped_vol, removed, trimmed_pct
 
 
 # =====================================================================
@@ -524,7 +537,7 @@ def main():
     field = simulate(GRID, STEPS, F, K, DU, DV, SEED)
 
     print("2-5. Thresholding, clipping, cleaning")
-    solid, cyl, voxel_mm, thr, n_trapped, trapped_vol, removed = build_solid(field)
+    solid, cyl, voxel_mm, thr, n_trapped, trapped_vol, removed, trimmed_pct = build_solid(field)
 
     print("6. Measuring feature sizes")
     strut, channel = feature_sizes(solid, cyl, voxel_mm)
@@ -564,6 +577,7 @@ def main():
             "actual_solid_fraction": round(solid_frac, 3),
             "porosity": round(1 - solid_frac, 3),
             "loose_voxels_removed": removed,
+            "overhang_trimmed_percent": round(trimmed_pct, 1),
             "trapped_voids_filled": int(n_trapped),
             "trapped_void_volume_mm3": round(float(trapped_vol), 2),
             "strut_thickness_mm": {"p10": round(pct(strut, 10), 2), "median": round(pct(strut, 50), 2), "p90": round(pct(strut, 90), 2)},
