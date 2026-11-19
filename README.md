@@ -4,7 +4,7 @@
 
 Python scripts that grow a 3D-printable coral settlement structure from a Gray-Scott reaction-diffusion simulation, plus a base plate with bayonet studs to mount the printed corals on.
 
-The lattice is inspired by the meandering valleys of *Platygyra* (brain coral). It is designed for binder-jet printing in calcium carbonate, and can be prototyped in PLA on an FDM printer.
+The lattice is inspired by the meandering valleys of *Platygyra* (brain coral). It is designed for binder-jet printing in calcium carbonate, and the same file can be prototyped in PLA on an FDM printer without supports.
 
 Version 2 replaces the screw thread with a quarter-turn bayonet joint. Push the coral onto a stud, turn it 90 degrees and it locks: no screws, no adhesive, nothing that has to survive the sintering furnace except the printed parts themselves.
 
@@ -82,18 +82,19 @@ For the reference example, `tools/joint_fit.py` measures the vertical play as 0.
 
 All settings are at the top of each script, in the block marked `SETTINGS - change these`. Most people only need these:
 
-| Setting (`coral_reef.py`)        | What it does                                                                                                                                                         |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SEED`                           | Picks a different random starting point: a new pattern with the same statistics                                                                                      |
-| `DIAMETER_MM`, `HEIGHT_MM`       | Outer size. `HEIGHT_MM` already includes the base                                                                                                                    |
-| `VOXELS_ACROSS`                  | Pattern scale. Change it in proportion to `DIAMETER_MM` to keep channel sizes the same                                                                               |
-| `SOLID_FRACTION`                 | How much of the part is solid. Lower = more porous                                                                                                                   |
-| `SKIN_STRENGTH`                  | 0 (default) = open lattice on the surface; higher = more closed surface with narrower openings                                                                       |
-| `TOP_SKIN_STRENGTH`              | The same for the top face. Without it the top is a flat cut through the lattice                                                                                      |
-| `CREST_MM`, `CREST_TAPER`        | Height of the rounded ridges on top, and how much they narrow. `CREST_MM = 0` turns them off                                                                         |
-| `MIN_STRUT_MM`, `MIN_CHANNEL_MM` | Thinnest wall and narrowest channel allowed. Set from your printer's limits                                                                                          |
-| `MAX_OVERHANG_DEG`               | `None` (default) for binder jetting, where powder supports the part. 45 gives support-free FDM prints but trims the pattern, which can leave caves and slanted walls |
-| `ADD_JOINT`                      | `False` gives a coral with a plain flat base and no socket                                                                                                           |
+| Setting (`coral_reef.py`)        | What it does                                                                                                                                                   |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SEED`                           | Picks a different random starting point: a new pattern with the same statistics                                                                                |
+| `DIAMETER_MM`, `HEIGHT_MM`       | Outer size. `HEIGHT_MM` already includes the base                                                                                                              |
+| `VOXELS_ACROSS`                  | Pattern scale. Change it in proportion to `DIAMETER_MM` to keep channel sizes the same                                                                         |
+| `SOLID_FRACTION`                 | How much of the part is solid. Lower = more porous                                                                                                             |
+| `SKIN_STRENGTH`                  | 0 (default) = open lattice on the surface; higher = more closed surface with narrower openings                                                                 |
+| `TOP_SKIN_STRENGTH`              | The same for the top face. Without it the top is a flat cut through the lattice                                                                                |
+| `CREST_MM`, `CREST_TAPER`        | Height of the rounded ridges on top, and how much they narrow. `CREST_MM = 0` turns them off                                                                   |
+| `MIN_STRUT_MM`, `MIN_CHANNEL_MM` | Thinnest wall and narrowest channel allowed. Set from your printer's limits                                                                                    |
+| `MAX_OVERHANG_DEG`               | 45 (default) trims anything that would need support, so the same file prints in PLA and in binder-jet CaCO3. `None` turns it off. Must be an angle, not `True` |
+| `VERTICAL_STRETCH`               | 2.0 (default) makes the walls steeper, so the overhang rule removes very little (about 1-2%) and leaves no slanted walls. 1.0 = no stretch                     |
+| `ADD_JOINT`                      | `False` gives a coral with a plain flat base and no socket                                                                                                     |
 
 **Changing the diameter?** `VOXELS_ACROSS`, `GRID`, `TARGET_TRIANGLES` and the plate size must change with it, or the pattern is stretched. [sizing_guide.md](sizing_guide.md) gives the values for 30 to 60 mm.
 

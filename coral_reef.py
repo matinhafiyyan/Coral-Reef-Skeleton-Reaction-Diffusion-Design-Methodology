@@ -37,14 +37,14 @@ import trimesh
 # =====================================================================
 
 # --- Physical size (mm) ---
-DIAMETER_MM = 30.0      # footprint diameter
+DIAMETER_MM = 50.0      # footprint diameter
 HEIGHT_MM = 30.0        # TOTAL height, base included
 BASE_MM = 3.0           # solid base plate thickness, part of HEIGHT_MM (0 = no base)
 
 # --- Simulation ---
-GRID = 96               # voxels per side. Higher = finer but slower (time ~ GRID^3)
+GRID = 128              # voxels per side. Higher = finer but slower (time ~ GRID^3)
 STEPS = 6000            # simulation iterations. Too few = pattern not settled
-SEED = 23               # random seed: change for a new variant, keep for reproducibility
+SEED = 9                # random seed: change for a new variant, keep for reproducibility
 
 # Gray-Scott parameters. F = feed rate, K = kill rate.
 # F=0.030, K=0.058 gives meandering, brain-coral-like interconnected channels.
@@ -59,7 +59,7 @@ DV = 0.08               # diffusion rate of chemical V (keep about half of DU)
 # How many simulation voxels span the cylinder diameter. The labyrinth
 # wavelength is fixed in voxels, so FEWER voxels across the diameter
 # means BIGGER channels in mm.
-VOXELS_ACROSS = 70      # 0.43 mm per simulation voxel (scale with DIAMETER_MM; see sizing_guide.md)
+VOXELS_ACROSS = 116     # 0.43 mm per simulation voxel (scale with DIAMETER_MM; see sizing_guide.md)
 
 # --- Porosity ---
 SOLID_FRACTION = 0.45   # fraction of the cylinder that is solid (0.3–0.6 sensible)
@@ -98,19 +98,22 @@ CREST_TAPER = 0.5
 # --- Printability (mm) ---
 MIN_STRUT_MM = 1.5      # thinnest wall: ~4 perimeters with a 0.4 mm nozzle
 MIN_CHANNEL_MM = 2.0    # narrowest channel (room for settlement; avoids stringing)
-MAX_OVERHANG_DEG = None # steepest allowed overhang, measured from vertical. None = off.
-                        # Off by default: binder jetting needs no supports (loose powder
-                        # holds every layer up). 45 makes support-free FDM prints, but the
-                        # rule works bottom-up, so trimming one unsupported wall also
-                        # removes everything that rested on it. With fine patterns this
-                        # cuts large caves and leaves rows of 45-degree slanted walls
-                        # (check overhang_trimmed_percent in the JSON). For PLA test
-                        # prints, slicer tree supports keep the true shape.
+MAX_OVERHANG_DEG = 45   # steepest allowed overhang, measured from vertical (None = off).
+                        # Together with VERTICAL_STRETCH = 2.0 this gives ONE geometry that
+                        # prints support-free in PLA (FDM) and identically in binder-jet CaCO3,
+                        # so prototypes and final parts match. The rule works bottom-up:
+                        # removing an unsupported wall also removes what rested on it, so
+                        # without the stretch it cuts caves and slanted "fence" walls.
+                        # Check overhang_trimmed_percent in the JSON (warning above 10%).
+                        # Must be an angle or None: True would act as 1 degree.
+VERTICAL_STRETCH = 2.0  # stretch the pattern vertically so walls are steeper and few
+                        # overhangs remain (1.0 = no stretch). From above the labyrinth looks
+                        # the same; from the side the valleys run upright.
 ENFORCE_MIN_FEATURES = True   # remove thinner struts / fill narrower channels automatically
 
 # --- Meshing ---
 UPSAMPLE = 2            # voxel refinement before meshing (keeps the overhang rule accurate)
-TARGET_TRIANGLES = 250_000   # mesh is simplified to about this many triangles (None = keep all)
+TARGET_TRIANGLES = 700_000   # mesh is simplified to about this many triangles (None = keep all)
 
 # --- Bayonet joint (quarter-turn lock) ---
 # The base plate carries a round stud with two lugs near its tip. The coral has
@@ -204,13 +207,14 @@ def build_solid(field):
     # Resample the simulation field onto the physical box
     voxel_mm = DIAMETER_MM / VOXELS_ACROSS
     nx = VOXELS_ACROSS
-    nz = int(round(HEIGHT_MM / voxel_mm))
-    reps = [int(np.ceil(s / GRID)) for s in (nx, nx, nz)]
-    field = np.tile(field, reps)[:nx, :nx, :nz]   # periodic, so tiling is seamless
+    nz_sim = int(round(HEIGHT_MM / (voxel_mm * VERTICAL_STRETCH)))
+    reps = [int(np.ceil(s / GRID)) for s in (nx, nx, nz_sim)]
+    field = np.tile(field, reps)[:nx, :nx, :nz_sim]   # periodic, so tiling is seamless
 
-    # Upsample for a smoother surface
-    field = ndimage.zoom(field, UPSAMPLE, order=3)
+    # Upsample for a smoother surface, stretching vertically if VERTICAL_STRETCH > 1
     voxel_mm /= UPSAMPLE
+    nz_out = int(round(HEIGHT_MM / voxel_mm))
+    field = ndimage.zoom(field, (UPSAMPLE, UPSAMPLE, nz_out / nz_sim), order=3)
     nx, _, nz = field.shape
 
     # Cylinder mask: a disc in every layer
@@ -284,6 +288,9 @@ def build_solid(field):
     # below, within a horizontal reach of tan(angle) x layer height. Built
     # bottom-up, so anything that would need a support is trimmed away.
     trimmed_pct = 0.0
+    if isinstance(MAX_OVERHANG_DEG, bool):
+        raise ValueError("MAX_OVERHANG_DEG must be an angle (e.g. 45) or None, not True/False: "
+                         "Python treats True as 1 degree, which removes most of the model")
     if MAX_OVERHANG_DEG is not None:
         reach = np.tan(np.radians(MAX_OVERHANG_DEG))   # in voxels per layer
         before = solid.sum()
@@ -563,7 +570,7 @@ def main():
             "top_skin_mm": TOP_SKIN_MM, "top_skin_strength": TOP_SKIN_STRENGTH,
             "crest_mm": CREST_MM, "crest_taper": CREST_TAPER,
             "upsample": UPSAMPLE, "min_strut_mm": MIN_STRUT_MM, "min_channel_mm": MIN_CHANNEL_MM,
-            "max_overhang_deg": MAX_OVERHANG_DEG, "enforce_min_features": ENFORCE_MIN_FEATURES,
+            "max_overhang_deg": MAX_OVERHANG_DEG, "vertical_stretch": VERTICAL_STRETCH, "enforce_min_features": ENFORCE_MIN_FEATURES,
             "target_triangles": TARGET_TRIANGLES,
             "joint": ({"type": JOINT_TYPE, "stud_dia_mm": STUD_DIA_MM, "stud_height_mm": STUD_HEIGHT_MM,
                        "lug_span_mm": LUG_SPAN_MM, "lug_width_mm": LUG_WIDTH_MM, "lug_height_mm": LUG_HEIGHT_MM,

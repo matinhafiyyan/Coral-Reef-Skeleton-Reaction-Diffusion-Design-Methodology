@@ -66,16 +66,31 @@ Only if you turn the optional skins on: `SKIN_MM` about 2.5, `TOP_SKIN_MM` about
 
 Check the minimum wall and channel sizes against what your printer can hold and, for binder jetting, what can still be cleared of loose powder.
 
-## Keep the overhang rule off
+## One geometry for PLA and binder jetting
 
-Leave `MAX_OVERHANG_DEG = None` (the default) for binder jetting. The rule works from the bottom up, so removing one unsupported wall also removes everything resting on it. The finer the pattern, the more it removes: on a 50 mm coral it cut caves into the sides and left rows of 45-degree slanted walls. If you do turn it on for a PLA test print, check `overhang_trimmed_percent` in the JSON; the script warns above 10%.
+The defaults (`VERTICAL_STRETCH = 2.0`, `MAX_OVERHANG_DEG = 45`) make a single geometry that prints support-free in PLA and identically in binder-jet CaCO3, so prototypes match the final parts. Keep both settings when you change the diameter.
+
+The overhang rule works from the bottom up, so removing one unsupported wall also removes everything resting on it. Without the stretch it can cut caves into the sides and leave rows of 45-degree slanted walls, especially on large, finely patterned corals. Check `overhang_trimmed_percent` in the JSON; the script warns above 10%. Always give it an angle: `MAX_OVERHANG_DEG = True` is read by Python as 1 degree and removes about half the model, so the script refuses it.
+
+### Why the stretch
+
+On a 50 mm coral (default pattern, seed 23):
+
+| Settings                  | Solid removed by the rule | Downward surface needing support |
+| ------------------------- | ------------------------- | -------------------------------- |
+| No rule                   | 0%                        | 907 mm2                          |
+| Rule at 45 degrees        | 8.1%                      | 69 mm2, slanted "fence" walls    |
+| Stretch 2.0 + rule at 45  | 2.3%                      | 24 mm2                           |
+| `MAX_OVERHANG_DEG = True` | 51.8%                     | 0 (most of the model gone)       |
+
+From above, the stretched pattern is the same labyrinth; from the side, the valleys run upright, as on a brain coral. The only remaining large overhang is the flat roof of the bayonet socket (a 10.6 mm bridge), which PLA bridges without support. In Bambu Studio, turn supports off (or use "On build plate only" with a support blocker over the socket), so no supports are placed inside the model.
 
 ## Settings that do not change
 
 - `HEIGHT_MM` (30, base included) and `BASE_MM`.
 - `STEPS`, `F`, `K`, `DU` and `DV`. These decide the type of pattern, not its size: changing them can turn the labyrinth into spots or blobs.
 - `SOLID_FRACTION`, `SKIN_STRENGTH`, `TOP_SKIN_STRENGTH` and `CREST_TAPER`.
-- `MAX_OVERHANG_DEG` (keep `None`).
+- `MAX_OVERHANG_DEG` (45) and `VERTICAL_STRETCH` (2.0).
 - All joint settings. The 21.6 mm boss around the socket fits every diameter from 30 mm up, but at 30 mm it takes up much of the centre (see the CHANGELOG).
 
 ## Example: a 50 mm coral with the coarser pattern
