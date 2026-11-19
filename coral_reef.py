@@ -122,17 +122,18 @@ TARGET_TRIANGLES = 250_000   # mesh is simplified to about this many triangles (
 # The stud settings below MUST match base_plate_studs.py (the tests check this).
 ADD_JOINT = True
 JOINT_TYPE = "bayonet"
-STUD_DIA_MM = 5.0           # round shaft of the stud
-STUD_HEIGHT_MM = 8.0        # stud height above the plate
-LUG_SPAN_MM = 8.0           # tip-to-tip width across both lugs (each lug sticks out 1.5 mm)
+STUD_DIA_MM = 10.0          # round shaft of the stud
+STUD_HEIGHT_MM = 15.0       # stud height above the plate: half of the 30 mm coral
+LUG_SPAN_MM = 15.0          # tip-to-tip width across both lugs, half the coral's diameter
+                            # (each lug sticks out 2.5 mm)
 LUG_WIDTH_MM = 3.0          # lug width
-LUG_HEIGHT_MM = 2.5         # lug height
+LUG_HEIGHT_MM = 7.5         # lug height: half of STUD_HEIGHT_MM
 LUG_TOP_BELOW_TIP_MM = 0.5  # gap from the top of the lugs to the stud tip
 JOINT_CLEARANCE_MM = 0.3    # gap on every side between stud and socket (binder-jet size scatter)
 TWIST_DEG = 90.0            # turn needed to lock
 JOINT_WALL_MM = 3.0         # solid material left around the socket's widest point
 JOINT_ROOF_MM = 2.0         # solid material above the top of the socket
-JOINT_CHAMFER_MM = 0.6      # lead-in chamfer at the socket mouth
+JOINT_CHAMFER_MM = 1.5      # lead-in chamfer at the socket mouth (room for the stud's 1.5 mm base fillet)
 LOCK_PLAY_MM = 0.05         # up-and-down play left once fully turned. The locking
                             # shelf rises gently as the coral turns (a ramp), taking
                             # the play from JOINT_CLEARANCE_MM down to this, so the

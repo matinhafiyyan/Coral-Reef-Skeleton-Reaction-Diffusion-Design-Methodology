@@ -76,7 +76,7 @@ Leave `MAX_OVERHANG_DEG = None` (the default) for binder jetting. The rule works
 - `STEPS`, `F`, `K`, `DU` and `DV`. These decide the type of pattern, not its size: changing them can turn the labyrinth into spots or blobs.
 - `SOLID_FRACTION`, `SKIN_STRENGTH`, `TOP_SKIN_STRENGTH` and `CREST_TAPER`.
 - `MAX_OVERHANG_DEG` (keep `None`).
-- All joint settings. The 14.6 mm boss around the socket fits every diameter from 30 mm up.
+- All joint settings. The 21.6 mm boss around the socket fits every diameter from 30 mm up, but at 30 mm it takes up much of the centre (see the CHANGELOG).
 
 ## Example: a 50 mm coral with the coarser pattern
 

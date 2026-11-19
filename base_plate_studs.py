@@ -31,7 +31,7 @@ import trimesh
 # --- Plate (mm) ---
 PLATE_X_MM = 90.0           # plate size along X
 PLATE_Y_MM = 90.0           # plate size along Y
-PLATE_THICKNESS_MM = 3.0    # plate thickness (printed flat on the bed)
+PLATE_THICKNESS_MM = 5.0    # plate thickness (printed flat on the bed); thick enough to hold a 15 mm stud
 
 # --- Stud layout ---
 # Studs sit on an evenly spaced grid. The first and last stud in each row or
@@ -46,19 +46,20 @@ MIN_GAP_MM = 10.0           # minimum free space between neighbouring models (wa
 # --- Bayonet stud ---
 # These MUST match the bayonet settings in coral_reef.py (the tests check this).
 JOINT_TYPE = "bayonet"
-STUD_DIA_MM = 5.0           # round shaft of the stud
-STUD_HEIGHT_MM = 8.0        # stud height above the plate
-LUG_SPAN_MM = 8.0           # tip-to-tip width across both lugs (each lug sticks out 1.5 mm)
+STUD_DIA_MM = 10.0          # round shaft of the stud
+STUD_HEIGHT_MM = 15.0       # stud height above the plate: half of the 30 mm coral
+LUG_SPAN_MM = 15.0          # tip-to-tip width across both lugs, half the coral's diameter
+                            # (each lug sticks out 2.5 mm)
 LUG_WIDTH_MM = 3.0          # lug width
-LUG_HEIGHT_MM = 2.5         # lug height
+LUG_HEIGHT_MM = 7.5         # lug height: half of STUD_HEIGHT_MM
 LUG_TOP_BELOW_TIP_MM = 0.5  # gap from the top of the lugs to the stud tip
 JOINT_CLEARANCE_MM = 0.3    # gap on every side between stud and socket (set in coral_reef.py)
 STUD_TIP_CHAMFER_MM = 0.6   # lead-in chamfer at the top of each stud
-STUD_BASE_FILLET_MM = 0.5   # 45-degree fillet where the stud meets the plate (strength in bending).
-                            # Must stay inside the coral's 0.6 mm socket mouth chamfer.
-LUG_ROOT_FILLET_MM = 0.5    # 45-degree fillet on top of each lug where it meets the shaft.
+STUD_BASE_FILLET_MM = 1.5   # 45-degree fillet where the stud meets the plate (strength in bending).
+                            # Must stay inside the coral's 1.5 mm socket mouth chamfer.
+LUG_ROOT_FILLET_MM = 1.0    # 45-degree fillet on top of each lug where it meets the shaft.
                             # Under the lug it is limited to fit inside the socket's bore.
-STUD_EMBED_MM = 2.0         # how far the stud runs down into the plate (fuses it)
+STUD_EMBED_MM = 4.0         # how far the stud runs down into the plate (fuses it)
 
 # --- Meshing / output ---
 EXPORT_3MF = True           # also write a 3MF (needs lxml); the STL is always written

@@ -46,7 +46,7 @@ python coral_reef.py
 python base_plate_studs.py
 
 # 4. Optional: check that they fit and lock
-python tools/joint_fit.py coral_cylinder_seed23_bayonet.stl coral_cylinder_seed23_bayonet_params.json baseplate_90x90x3_4studs_bayonet.stl baseplate_90x90x3_4studs_bayonet_params.json
+python tools/joint_fit.py coral_cylinder_seed23_bayonet.stl coral_cylinder_seed23_bayonet_params.json baseplate_90x90x5_4studs_bayonet.stl baseplate_90x90x5_4studs_bayonet_params.json
 ```
 
 Each script writes three files to the folder it runs in:
@@ -63,7 +63,7 @@ The base plate script also writes a `.3mf` copy when `EXPORT_3MF = True`.
 
 ![Bayonet socket from below, one stud, and the locked joint cut in half](examples/bayonet_joint_views.png)
 
-Each stud is a 5 mm round shaft, 8 mm tall, with two small lugs near the top (8 mm across, 3 mm wide, 2.5 mm tall). The coral has a matching socket in a solid boss under its base: a round bore, two vertical slots for the lugs, and a pocket at the top that lets the lugs turn.
+Each stud is a 10 mm round shaft, 15 mm tall (half the coral's height), with two lugs on its upper half (15 mm across, 3 mm wide, 7.5 mm tall). The coral has a matching socket in a solid boss under its base: a round bore, two vertical slots for the lugs, and a pocket at the top that lets the lugs turn.
 
 **To lock:** line the slots up with the lugs, push the coral down until it sits flat on the plate, then turn it 90 degrees clockwise (seen from above). **To remove:** turn it back 90 degrees and lift.
 
@@ -72,9 +72,9 @@ How it holds:
 - The lugs sit under a shelf in the socket, so the coral cannot be pulled straight off once turned.
 - The shelf is ramped. It starts 0.3 mm clear of the lugs, so the coral turns freely, and closes to 0.05 mm at the locked position, so the coral is pulled down snug against the plate as you turn it.
 - The pocket ends at 90 degrees, so the coral cannot be over-turned past the lock.
-- The stud has a 0.5 mm fillet where it meets the plate and on top of each lug, to make the most likely break points stronger.
+- The stud has a 1.5 mm fillet where it meets the plate and a 1.0 mm fillet on top of each lug, to make the most likely break points stronger. The plate is 5 mm thick to carry the taller stud.
 
-For the reference example, `tools/joint_fit.py` measures the vertical play as 0.24 mm at 30 degrees, 0.16 mm at 60 degrees and 0.07 mm when locked.
+For the reference example, `tools/joint_fit.py` measures the vertical play as 0.23 mm at 30 degrees, 0.15 mm at 60 degrees and 0.07 mm when locked.
 
 **Why not a screw or glue?** Binder-jet parts are printed as fragile "green" parts and then fired at high temperature. Metal or nylon screws would not survive the furnace with the part, and adhesive would add a second material to a structure meant to be pure calcium carbonate. A printed bayonet is part of the coral and the plate themselves, and a quarter turn is easier to do with gloves on, or underwater, than several turns of a thread.
 
@@ -107,11 +107,11 @@ Joint settings, in both scripts:
 
 | Setting                      | Default | What it does                                                      |
 | ---------------------------- | ------- | ----------------------------------------------------------------- |
-| `STUD_DIA_MM`                | 5.0     | Diameter of the round stud shaft                                  |
-| `STUD_HEIGHT_MM`             | 8.0     | Height of the stud above the plate                                |
-| `LUG_SPAN_MM`                | 8.0     | Width across both lugs, tip to tip                                |
+| `STUD_DIA_MM`                | 10.0    | Diameter of the round stud shaft                                  |
+| `STUD_HEIGHT_MM`             | 15.0    | Height of the stud above the plate                                |
+| `LUG_SPAN_MM`                | 15.0    | Width across both lugs, tip to tip                                |
 | `LUG_WIDTH_MM`               | 3.0     | Width of each lug                                                 |
-| `LUG_HEIGHT_MM`              | 2.5     | Height of each lug                                                |
+| `LUG_HEIGHT_MM`              | 7.5     | Height of each lug                                                |
 | `LUG_TOP_BELOW_TIP_MM`       | 0.5     | Gap from the top of the lugs to the top of the stud               |
 | `JOINT_CLEARANCE_MM`         | 0.3     | Gap on every side between stud and socket. Raise it if parts bind |
 | `TWIST_DEG` (coral only)     | 90      | How far the coral turns to lock                                   |

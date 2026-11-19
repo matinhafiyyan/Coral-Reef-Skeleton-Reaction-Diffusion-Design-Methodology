@@ -9,7 +9,8 @@ How the design evolved, newest first. Each version lists what changed and why.
 - The side skin is now off by default (`SKIN_STRENGTH = 0`).
 - Added an optional top skin (`TOP_SKIN_MM`, `TOP_SKIN_STRENGTH`) and crest band (`CREST_MM`, `CREST_TAPER`), both off by default. The original skin only measured depth from the curved wall, so it never reached the top face; the top skin covers it, and the crest band raises rounded ridges from it. Both are recorded in the JSON, and a new test checks that the top skin closes the top.
 - Added `sizing_guide.md`: which settings to change, and to what, for corals from 30 to 60 mm across.
-- Reference coral in `examples/` regenerated. Its STL is now about 12.5 MB because of the finer mesh.
+- Stronger bayonet joint after test prints proved too brittle: stud 5 to 10 mm across and 8 to 15 mm tall (half the coral's height), lugs 2.5 to 7.5 mm tall (half the stud) and 8 to 15 mm across, base fillet 0.5 to 1.5 mm with a matching 1.5 mm socket mouth chamfer, lug root fillet 0.5 to 1.0 mm, and base plate 3 to 5 mm thick. The locking shelf is now 6.95 mm thick (was 4.95 mm). The larger socket needs a solid boss 21.6 mm across and 17.5 mm tall, which lowers the reference coral's porosity from 47% to 36%.
+- Reference coral and plate in `examples/` regenerated. The coral STL is now about 12.5 MB because of the finer mesh, and the plate files are renamed `baseplate_90x90x5_...`.
 
 ## v2.0.0: bayonet joint (November 2026)
 
