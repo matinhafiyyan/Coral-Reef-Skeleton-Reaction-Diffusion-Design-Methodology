@@ -126,8 +126,8 @@ TARGET_TRIANGLES = 700_000   # mesh is simplified to about this many triangles (
 ADD_JOINT = True
 JOINT_TYPE = "bayonet"
 STUD_DIA_MM = 10.0          # round shaft of the stud
-STUD_HEIGHT_MM = 15.0       # stud height above the plate: half of the 30 mm coral
-LUG_SPAN_MM = 15.0          # tip-to-tip width across both lugs, half the coral's diameter
+STUD_HEIGHT_MM = 15.0       # stud height above the plate: half of the coral's 30 mm height
+LUG_SPAN_MM = 15.0          # tip-to-tip width across both lugs
                             # (each lug sticks out 2.5 mm)
 LUG_WIDTH_MM = 3.0          # lug width
 LUG_HEIGHT_MM = 7.5         # lug height: half of STUD_HEIGHT_MM

@@ -2,20 +2,20 @@
 
 These files were made by running the scripts in this repository with their default settings. Use them to see what the scripts produce, and to check that your own run reproduces the published result.
 
-| File                                           | Made by                                                                                        |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `coral_cylinder_seed23_bayonet.stl`            | `python coral_reef.py` (seed 23, 30 x 30 mm cylinder, bayonet socket, top skin and crest band) |
-| `coral_cylinder_seed23_bayonet_params.json`    | the same run: settings, measurements and software versions                                     |
-| `coral_cylinder_seed23_bayonet_preview.png`    | the same run: two cross-sections and a 3D view                                                 |
-| `baseplate_90x90x3_4studs_bayonet.stl`         | `python base_plate_studs.py` (90 x 90 mm plate, 4 bayonet studs)                               |
-| `baseplate_90x90x3_4studs_bayonet_params.json` | the same run                                                                                   |
-| `baseplate_90x90x3_4studs_bayonet_preview.png` | the same run: stud layout and a 3D view                                                        |
-| `bayonet_joint_views.png`                      | `tools/joint_views.py`: the socket from below, one stud, and the locked joint cut in half      |
-| `bayonet_assembly.glb`                         | `tools/joint_views.py`: the plate with one coral locked on, as two objects (open in Blender)   |
+| File                                             | Made by                                                                                      |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `coral_cylinder_seed9_bayonet.stl`               | `python coral_reef.py` (seed 9, 50 mm wide x 30 mm tall cylinder, bayonet socket)            |
+| `coral_cylinder_seed9_bayonet_params.json`       | the same run: settings, measurements and software versions                                   |
+| `coral_cylinder_seed9_bayonet_preview.png`       | the same run: two cross-sections and a 3D view                                               |
+| `baseplate_130x130x5_4studs_bayonet.stl`         | `python base_plate_studs.py` (130 x 130 x 5 mm plate, 4 bayonet studs)                       |
+| `baseplate_130x130x5_4studs_bayonet_params.json` | the same run                                                                                 |
+| `baseplate_130x130x5_4studs_bayonet_preview.png` | the same run: stud layout and a 3D view                                                      |
+| `bayonet_joint_views.png`                        | `tools/joint_views.py`: the socket from below, one stud, and the locked joint cut in half    |
+| `bayonet_assembly.glb`                           | `tools/joint_views.py`: the plate with one coral locked on, as two objects (open in Blender) |
 
 ## Checking your run
 
-**Automatically:** run the full reproduction test, which compares your result with `coral_cylinder_seed23_bayonet_params.json`:
+**Automatically:** run the full reproduction test, which compares your result with `coral_cylinder_seed9_bayonet_params.json`:
 
 ```bash
 RUN_SLOW=1 pytest tests/test_reproduce_example.py
@@ -33,14 +33,14 @@ pytest tests/test_reproduce_example.py
 **Joint fit:** check that your coral and plate fit, turn and lock:
 
 ```bash
-python tools/joint_fit.py examples/coral_cylinder_seed23_bayonet.stl examples/coral_cylinder_seed23_bayonet_params.json examples/baseplate_90x90x3_4studs_bayonet.stl examples/baseplate_90x90x3_4studs_bayonet_params.json
+python tools/joint_fit.py examples/coral_cylinder_seed9_bayonet.stl examples/coral_cylinder_seed9_bayonet_params.json examples/baseplate_130x130x5_4studs_bayonet.stl examples/baseplate_130x130x5_4studs_bayonet_params.json
 ```
 
 **Exact file match:** on the same platform and library versions, the STL files are byte-for-byte identical. Their SHA-256 checksums are:
 
 ```
-1754e4cc213e801e458a81ab53610fe839367d53a33841eed578658c8bcdd13f  coral_cylinder_seed23_bayonet.stl
-110c92e17afeb74ddd0d6f6e32ae6086cce4ebc8c7cd48a63e2ca01caca9a970  baseplate_90x90x3_4studs_bayonet.stl
+4e65dbac8db2ed60a5a4d197ba69a0f5b1c1327a9cf532729329760866fa48b3  coral_cylinder_seed9_bayonet.stl
+1bbb358350ae2ad37534bf60f401d20217c4421cdab3a524cf7704698ae1bce4  baseplate_130x130x5_4studs_bayonet.stl
 ```
 
 Check yours with `shasum -a 256 <file>` (macOS), `sha256sum <file>` (Linux) or `certutil -hashfile <file> SHA256` (Windows).

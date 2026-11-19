@@ -1,6 +1,6 @@
 # Sizing guide: changing the diameter
 
-`coral_reef.py` is set up for a 30 mm coral. To make a bigger or smaller one, several settings have to change together. This guide lists them.
+`coral_reef.py` is set up for a 50 mm coral. To make a bigger or smaller one, several settings have to change together. This guide lists them.
 
 ## The rule behind it
 
@@ -114,7 +114,7 @@ PLATE_Y_MM = 130.0
 MODEL_FOOTPRINT_MM = 50.0
 ```
 
-Expect the coral to take noticeably longer than the 30 mm default, mostly in the simulation step.
+Expect a 50 mm coral to take noticeably longer than a 30 mm one, mostly in the simulation step.
 
 ## Reference
 

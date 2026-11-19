@@ -50,7 +50,7 @@ def test_record_contains_every_setting(small_run):
     for key in ("diameter_mm", "height_mm", "base_mm", "seed", "F", "K", "DU", "DV",
                 "voxels_across", "target_solid_fraction", "skin_mm", "skin_strength",
                 "top_skin_mm", "top_skin_strength", "crest_mm", "crest_taper",
-                "min_strut_mm", "min_channel_mm", "max_overhang_deg", "target_triangles"):
+                "min_strut_mm", "min_channel_mm", "max_overhang_deg", "vertical_stretch", "target_triangles"):
         assert key in params, f"{key} missing from the JSON record"
     assert record["software"]["numpy"], "library versions must be recorded"
     assert record["results"]["mesh_watertight"] is True
@@ -67,6 +67,8 @@ def test_top_skin_closes_the_top(monkeypatch):
         z0 = z1 - max(1, int(round(1.0 / voxel_mm)))           # 1 mm under the band
         return solid[:, :, z0:z1][cyl[:, :, z0:z1]].mean()
 
+    monkeypatch.setattr(cr, "TOP_SKIN_STRENGTH", 0.85)
+    monkeypatch.setattr(cr, "CREST_MM", 3.0)
     with_skin = solid_under_crest()
     monkeypatch.setattr(cr, "TOP_SKIN_STRENGTH", 0.0)
     without_skin = solid_under_crest()
@@ -96,3 +98,11 @@ def test_same_settings_give_the_same_file(monkeypatch, tmp_path):
         cr.main()
         hashes.append(hashlib.sha256((folder / cr.OUT_STL).read_bytes()).hexdigest())
     assert hashes[0] == hashes[1]
+
+
+def test_overhang_setting_must_be_an_angle(monkeypatch):
+    """True would silently act as a 1-degree limit and remove most of the model."""
+    monkeypatch.setattr(cr, "MAX_OVERHANG_DEG", True)
+    field = cr.simulate(24, 50, cr.F, cr.K, cr.DU, cr.DV, seed=1)
+    with pytest.raises(ValueError):
+        cr.build_solid(field)

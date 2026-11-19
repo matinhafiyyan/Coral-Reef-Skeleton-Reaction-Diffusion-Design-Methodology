@@ -9,7 +9,7 @@ The lattice is inspired by the meandering valleys of *Platygyra* (brain coral). 
 Version 2 replaces the screw thread with a quarter-turn bayonet joint. Push the coral onto a stud, turn it 90 degrees and it locks: no screws, no adhesive, nothing that has to survive the sintering furnace except the printed parts themselves.
 
 
-![Cross-sections and 3D view of the seed-23 coral](examples/coral_cylinder_seed23_bayonet_preview.png)
+![Cross-sections and 3D view of the seed-9 coral](examples/coral_cylinder_seed9_bayonet_preview.png)
 
 
 ## What is in this repository
@@ -46,7 +46,7 @@ python coral_reef.py
 python base_plate_studs.py
 
 # 4. Optional: check that they fit and lock
-python tools/joint_fit.py coral_cylinder_seed23_bayonet.stl coral_cylinder_seed23_bayonet_params.json baseplate_90x90x5_4studs_bayonet.stl baseplate_90x90x5_4studs_bayonet_params.json
+python tools/joint_fit.py coral_cylinder_seed9_bayonet.stl coral_cylinder_seed9_bayonet_params.json baseplate_130x130x5_4studs_bayonet.stl baseplate_130x130x5_4studs_bayonet_params.json
 ```
 
 Each script writes three files to the folder it runs in:

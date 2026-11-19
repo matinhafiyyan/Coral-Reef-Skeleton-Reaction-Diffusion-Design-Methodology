@@ -29,8 +29,8 @@ import trimesh
 # =====================================================================
 
 # --- Plate (mm) ---
-PLATE_X_MM = 90.0           # plate size along X
-PLATE_Y_MM = 90.0           # plate size along Y
+PLATE_X_MM = 130.0          # plate size along X
+PLATE_Y_MM = 130.0          # plate size along Y
 PLATE_THICKNESS_MM = 5.0    # plate thickness (printed flat on the bed); thick enough to hold a 15 mm stud
 
 # --- Stud layout ---
@@ -39,7 +39,7 @@ PLATE_THICKNESS_MM = 5.0    # plate thickness (printed flat on the bed); thick e
 # of free plate beyond its edge. Spacing between studs follows from that.
 STUD_COLUMNS = 2            # studs along X
 STUD_ROWS = 2               # studs along Y
-MODEL_FOOTPRINT_MM = 30.0   # widest footprint of one model once locked on (square box)
+MODEL_FOOTPRINT_MM = 50.0   # widest footprint of one model once locked on (square box)
 EDGE_MARGIN_MM = 10.0       # minimum free plate between a model and the plate edge
 MIN_GAP_MM = 10.0           # minimum free space between neighbouring models (warning only)
 
@@ -47,8 +47,8 @@ MIN_GAP_MM = 10.0           # minimum free space between neighbouring models (wa
 # These MUST match the bayonet settings in coral_reef.py (the tests check this).
 JOINT_TYPE = "bayonet"
 STUD_DIA_MM = 10.0          # round shaft of the stud
-STUD_HEIGHT_MM = 15.0       # stud height above the plate: half of the 30 mm coral
-LUG_SPAN_MM = 15.0          # tip-to-tip width across both lugs, half the coral's diameter
+STUD_HEIGHT_MM = 15.0       # stud height above the plate: half of the coral's 30 mm height
+LUG_SPAN_MM = 15.0          # tip-to-tip width across both lugs
                             # (each lug sticks out 2.5 mm)
 LUG_WIDTH_MM = 3.0          # lug width
 LUG_HEIGHT_MM = 7.5         # lug height: half of STUD_HEIGHT_MM
